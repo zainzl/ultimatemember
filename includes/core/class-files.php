@@ -67,6 +67,297 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 
 
 		/**
+		 * Function for get and create uploads dir
+		 *
+		 * @param string $dir
+		 * @param string $dir_access
+		 * @param bool $create_dir
+		 * @return string
+		 */
+		function get_upload_dir( $dir = '', $dir_access = '', $create_dir = true ) {
+			if ( empty( $this->upload_dir ) ) {
+				$uploads = wp_upload_dir();
+				$this->upload_dir = str_replace( '/', DIRECTORY_SEPARATOR, $uploads['basedir'] . DIRECTORY_SEPARATOR );
+			}
+
+			$dir = str_replace( '/', DIRECTORY_SEPARATOR, $dir );
+
+			//check and create folder
+			if ( ! empty( $dir ) && $create_dir ) {
+				$folders = explode( DIRECTORY_SEPARATOR, $dir );
+				$cur_folder = '';
+				foreach ( $folders as $folder ) {
+					$prev_dir = $cur_folder;
+					$cur_folder .= $folder . DIRECTORY_SEPARATOR;
+					if ( ! is_dir( $this->upload_dir . $cur_folder ) && wp_is_writable( $this->upload_dir . $prev_dir ) ) {
+						mkdir( $this->upload_dir . $cur_folder, 0777 );
+
+						if ( $dir_access == 'deny' ) {
+							$htp = fopen( $this->upload_dir . $cur_folder . DIRECTORY_SEPARATOR . '.htaccess', 'w' );
+							fputs( $htp, 'deny from all' );
+						} elseif( $dir_access == 'allow' ) {
+							$htp = fopen( $this->upload_dir . $cur_folder . DIRECTORY_SEPARATOR . '.htaccess', 'w' );
+							fputs( $htp, 'allow from all' );
+						}
+					}
+				}
+			}
+
+			//return dir path
+			return $this->upload_dir . $dir;
+		}
+
+
+		/**
+		 * Download file by parts
+		 *
+		 * @param string $filename
+		 * @param bool $retbytes
+		 *
+		 * @return bool|int
+		 */
+		function readfile_chunked( $filename, $retbytes = true ) {
+			$chunksize = 1 *( 1024 * 1024 ); // how many bytes per chunk
+			$cnt = 0;
+			$handle = fopen( $filename, 'rb' );
+			if ( $handle === false ) {
+				return false;
+			}
+
+			while ( ! feof( $handle ) ) {
+				$buffer = fread( $handle, $chunksize );
+				echo $buffer;
+				if ( $retbytes ) {
+					$cnt += strlen( $buffer );
+				}
+			}
+			$status = fclose( $handle );
+			if ( $retbytes && $status ) {
+				return $cnt; // return num. bytes delivered like readfile() does.
+			}
+			return $status;
+
+		}
+
+
+		/**
+		 *
+		 */
+		function download_file() {
+			if ( ! is_user_logged_in() ) {
+				return;
+			}
+
+			if ( ! isset( $_GET['download_chat_history'] ) || 'true' != $_GET['download_chat_history'] ) {
+				return;
+			}
+
+			if ( empty( $_GET['conversation_id'] ) ) {
+				return;
+			}
+
+			@ignore_user_abort( true );
+			@set_time_limit( 0 );
+
+			$user_id = get_current_user_id();
+
+			$gdpr_folder = $this->get_upload_dir( 'ultimatemember/gdpr' );
+			$filename = md5( $user_id .  $_GET['conversation_id'] . 'gdpr_data_salt' );
+			$filepath = $gdpr_folder . DIRECTORY_SEPARATOR . $filename . '.txt';
+
+			global $wpdb;
+			$file_content = '';
+			$user_id = um_user('ID');
+			if ( $_GET['conversation_id'] == 'all' ) {
+				$conversations = UM()->Messaging_API()->api()->get_conversations( $user_id );
+
+				if ( ! empty( $conversations ) ) {
+					foreach ( $conversations as $conversation ) {
+						$messages = $wpdb->get_results( $wpdb->prepare(
+							"SELECT * 
+							FROM {$wpdb->prefix}um_messages
+							WHERE conversation_id = %d 
+							ORDER BY time ASC",
+							$conversation->conversation_id
+						), ARRAY_A );
+
+						if ( ! empty( $messages ) ) {
+
+							um_fetch_user( $conversation->user_b );
+							$from = um_user( 'display_name' );
+							um_fetch_user( $conversation->user_a );
+							$to = um_user( 'display_name' );
+
+							if ( ! empty( $file_content ) ) {
+								$file_content .= "\r\n\r\n";
+							}
+							$file_content .= "============= Conversation \"{$from}\" -> \"{$to}\" =============\r\n\r\n";
+
+							foreach ( $messages as $message ) {
+								if ( $message['author'] == get_current_user_id() ) {
+									$author = __( 'Me', 'um-messaging' );
+								} else {
+									um_fetch_user( $message['author'] );
+									$author = um_user( 'display_name' );
+								}
+
+								$file_content .= "[{$author} - {$message['time']}]\r\n{$message['content']}\r\n\r\n";
+							}
+						}
+					}
+				}
+			} else {
+				$messages = $wpdb->get_results( $wpdb->prepare(
+					"SELECT * 
+					FROM {$wpdb->prefix}um_messages
+					WHERE conversation_id = %d 
+					ORDER BY time ASC",
+					$_GET['conversation_id']
+				), ARRAY_A );
+
+				if ( ! empty( $messages ) ) {
+					foreach ( $messages as $message ) {
+						if ( $message['author'] == get_current_user_id() ) {
+							$author = __( 'Me', 'um-messaging' );
+						} else {
+							um_fetch_user( $message['author'] );
+							$author = um_user( 'display_name' );
+						}
+
+						$file_content .= "[{$author} - {$message['time']}]\r\n{$message['content']}\r\n\r\n";
+					}
+				}
+			}
+
+			um_fetch_user( $user_id );
+
+			if ( empty( $file_content ) ) {
+				return;
+			}
+
+
+			$gdpr_file   = fopen( $filepath, 'w+' );
+			fwrite( $gdpr_file, $file_content );
+			fclose( $gdpr_file );
+
+			$fsize = filesize( $filepath );
+
+			$content_type = 'text/plain';
+			$filename = "conversation-data-{$_GET['conversation_id']}.txt";
+
+			header( "Pragma: no-cache" );
+			header( "Expires: 0" );
+			header( "Cache-Control: must-revalidate, post-check=0, pre-check=0" );
+			header( "Robots: none" );
+			header( "Content-Description: File Transfer" );
+			header( "Content-Transfer-Encoding: binary" );
+			header( "Content-type: {$content_type}" );
+			header( "Content-Disposition: attachment; filename=\"{$filename}\"" );
+			header( "Content-length: $fsize" );
+
+			$levels = ob_get_level();
+			for ( $i = 0; $i < $levels; $i++ ) {
+				@ob_end_clean();
+			}
+
+			$this->readfile_chunked( $filepath );
+			exit;
+		}
+
+
+		/**
+		 *
+		 */
+		function ajax_upload_process() {
+			if ( ! ini_get( 'safe_mode' ) ) {
+				@set_time_limit(0);
+			}
+
+			if ( is_multisite() && ! is_upload_space_available() ) {
+				exit( json_encode( array( 'status' => false, 'message' => __( 'Sorry, you have used all of your storage quota.', 'ultimate-member' ) ) ) );
+			}
+
+			$targetDir = $this->get_upload_dir( 'ultimatemember/files/', 'deny' );
+
+			if( isset( $_REQUEST["name"] ) ) {
+				$new_name = $_REQUEST["name"];
+			} else {
+				$new_name = uniqid("file_");
+			}
+			$target_path = $targetDir . $new_name;
+
+			// Chunking might be enabled
+			$chunk = isset($_REQUEST["chunk"]) ? intval($_REQUEST["chunk"]) : 0;
+			$chunks = isset($_REQUEST["chunks"]) ? intval($_REQUEST["chunks"]) : 0;
+
+			if (!is_dir($targetDir) || !$dir = opendir($targetDir)) {
+				exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open directory', 'ultimate-member' ) ) ) );
+			}
+
+			while (($file = readdir($dir)) !== false) {
+				$tmpfilePath = $targetDir . DIRECTORY_SEPARATOR . $file;
+				if ($tmpfilePath == "{$target_path}.part") {
+					continue;
+				}
+
+				if (preg_match('/\.part$/', $file) && (filemtime($tmpfilePath) < time() - 360000)) {
+					@unlink($tmpfilePath);
+				}
+			}
+			closedir($dir);
+
+			// Open temp file
+			if (!$out = @fopen("{$target_path}.part", $chunks ? "ab" : "wb")) {
+				exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open output stream', 'ultimate-member' ) ) ) );
+			}
+
+			if (!empty($_FILES)) {
+				if ($_FILES["file"]["error"] || !is_uploaded_file($_FILES["file"]["tmp_name"])) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to move uploaded file', 'ultimate-member' ) ) ) );
+				}
+
+				// Read binary input stream and append it to temp file
+				if (!$in = @fopen($_FILES["file"]["tmp_name"], "rb")) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
+				}
+			} else {
+				if (!$in = @fopen("php://input", "rb")) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
+				}
+			}
+
+			while ($buff = fread($in, 4096)) {
+				fwrite($out, $buff);
+			}
+
+			@fclose($out);
+			@fclose($in);
+
+			// Check if file has been uploaded
+			if (!$chunks || $chunk == $chunks - 1) {
+				// Strip the temp .part suffix off
+				$random_digit = rand(0000, 9999);
+				$branch = array();
+				if( isset( $_REQUEST['category'] ) ) {
+					$branch = $this->get_category_branch_array( $_REQUEST['category'], 'folder_name');
+				}
+
+				$new_target_path = $this->get_upload_dir( 'ultimatemember/files/' . $user_id . $random_digit . $new_name;
+
+				if ( ! rename( "{$target_path}.part", $new_target_path ) ) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
+				}
+
+				//insert file data to usermeta
+
+				exit(json_encode(array('status' => true, 'message' => 'full_success', 'id' => $file_id)));
+			} else {
+				exit(json_encode(array('status' => true, 'message' => 'part_success')));
+			}
+		}
+
+
+		/**
 		 * Remove file by AJAX
 		 */
 		function ajax_remove_file() {
