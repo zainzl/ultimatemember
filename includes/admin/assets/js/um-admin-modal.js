@@ -16,17 +16,17 @@ function um_admin_live_update_scripts() {
  * @param ajax
  * @param size
  */
-function um_admin_new_modal( id, ajax, size ){
+function um_admin_new_modal( id, ajax, size ) {
 	var modal = jQuery('body').find('.um-admin-overlay');
-	
+
 	jQuery('.tipsy').hide();
-	
+
 	um_admin_remove_modal();
-		
+
 	jQuery('body').addClass('um-admin-modal-open').append('<div class="um-admin-overlay" /><div class="um-admin-modal" />');
 	jQuery('#' + id).prependTo('.um-admin-modal').show();
 	jQuery('.um-admin-modal').show();
-	
+
 	jQuery('.um-admin-modal-head').append('<a href="#" data-action="UM_remove_modal" class="um-admin-modal-close"><i class="um-faicon-times"></i></a>');
 
 	if ( ajax == true ) {
@@ -134,9 +134,9 @@ function um_admin_modal_ajaxcall( act_id, arg1, arg2, arg3 ) {
  *
  */
 function um_admin_modal_responsive() {
-	var um_admin_editor = jQuery('.um-admin-editor:visible');
-	var required_margin = um_admin_editor.innerHeight() / 2 + 'px';
-	um_admin_editor.css({'margin-top': '-' + required_margin });
+	var um_admin_modal = jQuery('.um-admin-modal:visible');
+	var required_margin = um_admin_modal.innerHeight() / 2 + 'px';
+	um_admin_modal.css({'margin-top': '-' + required_margin });
 }
 
 
@@ -149,17 +149,17 @@ function um_admin_remove_modal() {
 	if ( um_admin_editor.length > 0 ) {
 
 		if ( jQuery('.um-admin-modal:visible').find('form').parent().attr('id') == 'UM_edit_field' ) {
-		
+
 			tinyMCE.execCommand('mceRemoveEditor', true, 'um_editor_edit');
 			jQuery('.um-hidden-editor-edit').html( um_admin_editor.contents() );
 			tinyMCE.execCommand('mceAddEditor', true, 'um_editor_edit');
-		
+
 		} else {
-		
+
 			tinyMCE.execCommand('mceRemoveEditor', true, 'um_editor_new');
 			jQuery('.um-hidden-editor-new').html( um_admin_editor.contents() );
 			tinyMCE.execCommand('mceAddEditor', true, 'um_editor_new');
-		
+
 		}
 
 	}
@@ -209,13 +209,13 @@ function um_admin_modal_add_attr( id, value ) {
 /**
 	Custom modal scripting starts
 **/
-jQuery(document).ready(function() {
+jQuery(document).ready( function() {
 
 
 	/**
 		disable link
 	**/
-	jQuery(document).on('click', '.um-admin-builder a, .um-admin-modal a', function(e){
+	jQuery(document).on('click', '.um-admin-builder a, .um-admin-modal a', function(e) {
 		e.preventDefault();
 		return false;
 	});
@@ -401,7 +401,7 @@ jQuery(document).ready(function() {
 	/**
 	 * Retrieve options from a callback function
 	 */
-	jQuery(document).on('blur',"#_custom_dropdown_options_source", function(){
+	jQuery(document).on( 'blur', "#_custom_dropdown_options_source", function(){
 		var me = jQuery(this);
 		var _options = jQuery('textarea[id=_options]');
 
@@ -411,7 +411,7 @@ jQuery(document).ready(function() {
 			wp.ajax.send( 'um_populate_dropdown_options', {
 				data: {
 					um_option_callback: um_option_callback,
-					nonce: 		um_admin_scripts.nonce
+					nonce: um_admin_scripts.nonce
 				},
 				success: function( response ) {
 					var arr_opts = [];

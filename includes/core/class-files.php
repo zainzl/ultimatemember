@@ -342,7 +342,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 					$branch = $this->get_category_branch_array( $_REQUEST['category'], 'folder_name');
 				}
 
-				$new_target_path = $this->get_upload_dir( 'ultimatemember/files/' . $user_id . $random_digit . $new_name;
+				$new_target_path = $this->get_upload_dir( 'ultimatemember/files/' . $user_id . $random_digit . $new_name );
 
 				if ( ! rename( "{$target_path}.part", $new_target_path ) ) {
 					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
