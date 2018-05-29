@@ -1589,11 +1589,17 @@ if ( ! class_exists( 'um\core\Fields' ) ) {
 				}
 			}
 
-			if (!isset( $data['type'] )) return;
+			if ( ! isset( $data['type'] ) ) {
+				return;
+			}
 
-			if (isset( $data['in_group'] ) && $data['in_group'] != '' && $rule != 'group') return;
+			if ( isset( $data['in_group'] ) && $data['in_group'] != '' && $rule != 'group' ) {
+				return;
+			}
 
-			if ($visibility == 'view' && $this->set_mode != 'register') return;
+			if ( $visibility == 'view' && $this->set_mode != 'register' ) {
+				return;
+			}
 
 			if ( ( $visibility == 'view' && $this->set_mode == 'register' ) ||
 				( isset( $data['editable'] ) && $data['editable'] == 0 && $this->set_mode == 'profile' )
@@ -2254,7 +2260,6 @@ if ( ! class_exists( 'um\core\Fields' ) ) {
 					$nonce = wp_create_nonce( 'um_upload_nonce-' . $this->timestamp );
 
 					$output .= '<div class="um-single-image-preview ' . $crop_class . '"  data-crop="' . $crop_data . '" data-ratio="' . $ratio . '" data-min_width="' . $min_width . '" data-min_height="' . $min_height . '" data-coord=""><a href="#" class="cancel"><i class="um-icon-close"></i></a><img src="" alt="" /><div class="um-clear"></div></div><div class="um-clear"></div>';
-					$output .= '<div class="um_uploader_block"></div>';
 					$output .= '<div class="um-single-image-upload" data-nonce="' . $nonce . '" data-timestamp="' . esc_attr( $this->timestamp ) . '" data-icon="' . esc_attr( $icon ) . '" data-set_id="' . esc_attr( $set_id ) . '" data-set_mode="' . esc_attr( $set_mode ) . '" data-type="' . esc_attr( $type ) . '" data-key="' . esc_attr( $key ) . '" data-max_size="' . esc_attr( $max_size ) . '" data-max_size_error="' . esc_attr( $max_size_error ) . '" data-min_size_error="' . esc_attr( $min_size_error ) . '" data-extension_error="' . esc_attr( $extension_error ) . '"  data-allowed_types="' . esc_attr( $allowed_types ) . '" data-upload_text="' . esc_attr( $upload_text ) . '" data-max_files_error="' . esc_attr( $max_files_error ) . '" data-upload_help_text="' . esc_attr( $upload_help_text ) . '">' . $button_text . '</div>';
 
 					$output .= '<div class="um-modal-footer">
@@ -2281,92 +2286,109 @@ if ( ! class_exists( 'um\core\Fields' ) ) {
 
 				/* Single File Upload */
 				case 'file':
-					$output .= '<div class="um-field' . $classes . '"' . $conditional . ' data-key="' . $key . '">';
+					ob_start(); ?>
 
-					$output .= '<input type="hidden" name="' . $key . UM()->form()->form_suffix . '" id="' . $key . UM()->form()->form_suffix . '" value="' . $this->field_value( $key, $default, $data ) . '" />';
+					<div class="um-field<?php esc_attr_e( $classes ) ?>"<?php echo $conditional ?> data-key="<?php esc_attr_e( $key ) ?>">
 
-					if (isset( $data['label'] )) {
-						$output .= $this->field_label( $label, $key, $data );
-					}
+						<input type="hidden" name="<?php esc_attr_e( $key . UM()->form()->form_suffix ) ?>" id="<?php esc_attr_e( $key . UM()->form()->form_suffix ) ?>" value="<?php echo $this->field_value( $key, $default, $data ) ?>" />
 
-					$modal_label = ( isset( $data['label'] ) ) ? $data['label'] : __( 'Upload Photo', 'ultimate-member' );
+						<?php if ( isset( $data['label'] ) ) {
+							echo $this->field_label( $label, $key, $data );
+						} ?>
 
-					$output .= '<div class="um-field-area" style="text-align: center">';
+						<div class="um-field-area" style="text-align: center;">
 
-					if ($this->field_value( $key, $default, $data )) {
+							<?php $field_value = $this->field_value( $key, $default, $data );
 
-						$extension = pathinfo( $this->field_value( $key, $default, $data ), PATHINFO_EXTENSION );
+							if ( ! empty( $field_value ) ) {
+								//$button_text = __( 'Change file', 'ultimate-member' );
+								$extension = pathinfo( $field_value, PATHINFO_EXTENSION ); ?>
 
-						$output .= '<div class="um-single-file-preview show" data-key="' . $key . '">
-                                        <a href="#" class="cancel"><i class="um-icon-close"></i></a>
-                                        <div class="um-single-fileinfo">
-                                            <a href="' . um_user_uploads_uri() . $this->field_value( $key, $default, $data ) . '" target="_blank">
-                                                <span class="icon" style="background:' . UM()->files()->get_fonticon_bg_by_ext( $extension ) . '"><i class="' . UM()->files()->get_fonticon_by_ext( $extension ) . '"></i></span>
-                                                <span class="filename">' . $this->field_value( $key, $default, $data ) . '</span>
-                                            </a>
-                                        </div>
-                            </div><a href="#" data-modal="um_upload_single" data-modal-size="' . $modal_size . '" data-modal-copy="1" class="um-button um-btn-auto-width">' . __( 'Change file', 'ultimate-member' ) . '</a>';
+								<div class="um-single-file-preview show" data-key="<?php esc_attr_e( $key ) ?>">
+									<a href="javascript:void(0);" class="cancel"><i class="um-icon-close"></i></a>
+									<a href="javascript:void(0);" class="change"><i class="um-faicon-exchange"></i></a>
+									<a href="javascript:void(0);" class="back" style="display: none;"><i class="um-icon-arrow-left-a"></i></a>
+									<div class="um-single-fileinfo">
+										<a href="<?php esc_attr_e( um_user_uploads_uri() . $field_value ) ?>" target="_blank">
+											<span class="icon" style="background:<?php esc_attr_e( UM()->files()->get_fonticon_bg_by_ext( $extension ) ) ?>">
+												<i class="<?php esc_attr_e( UM()->files()->get_fonticon_by_ext( $extension ) ) ?>"></i>
+											</span>
+											<span class="filename"><?php echo $field_value ?></span>
+										</a>
+									</div>
+								</div>
+							<?php } else { ?>
+								<div class="um-single-file-preview" data-key="<?php esc_attr_e( $key ) ?>"></div>
+							<?php } ?>
 
-					} else {
+							<div class="um_uploader_block" style="<?php if ( ! empty( $field_value ) ) { ?>display:none;<?php } ?>"></div>
 
-						$output .= '<div class="um-single-file-preview" data-key="' . $key . '">
-                            </div><a href="#" data-modal="um_upload_single" data-modal-size="' . $modal_size . '" data-modal-copy="1" class="um-button um-btn-auto-width">' . $button_text . '</a>';
+							<!--<a href="#" data-modal="um_upload_single" data-modal-size="<?php /*esc_attr_e( $modal_size ) */?>" data-modal-copy="1" class="um-button um-btn-auto-width">
+								<?php /*echo $button_text */?>
+							</a>-->
+						</div>
 
-					}
+						<!-- modal hidden -->
+						<div class="um-modal-hidden-content">
 
-					$output .= '</div>';
+							<div class="um-modal-header">
+								<?php echo ( isset( $data['label'] ) ) ? $data['label'] : __( 'Upload File', 'ultimate-member' ) ?>
+							</div>
 
-					/* modal hidden */
-					$output .= '<div class="um-modal-hidden-content">';
+							<div class="um-modal-body">
 
-					$output .= '<div class="um-modal-header"> ' . $modal_label . '</div>';
+								<?php if ( isset( $this->set_id ) ) {
+									$set_id = $this->set_id;
+									$set_mode = $this->set_mode;
+								} else {
+									$set_id = 0;
+									$set_mode = '';
+								} ?>
 
-					$output .= '<div class="um-modal-body">';
+								<div class="um-single-file-preview">
+									<a href="#" class="cancel"><i class="um-icon-close"></i></a>
+									<div class="um-single-fileinfo">
+										<a href="" target="_blank">
+											<span class="icon"><i></i></span>
+											<span class="filename"></span>
+										</a>
+									</div>
+								</div>
 
-					if (isset( $this->set_id )) {
-						$set_id = $this->set_id;
-						$set_mode = $this->set_mode;
-					} else {
-						$set_id = 0;
-						$set_mode = '';
-					}
+								<?php $nonce = wp_create_nonce( 'um_upload_nonce-' . $this->timestamp ); ?>
 
-					$output .= '<div class="um-single-file-preview">
-                                        <a href="#" class="cancel"><i class="um-icon-close"></i></a>
-                                        <div class="um-single-fileinfo">
-                                            <a href="" target="_blank">
-                                                <span class="icon"><i></i></span>
-                                                <span class="filename"></span>
-                                            </a>
-                                        </div>
-                                </div>';
+								<div class="um-single-file-upload" data-timestamp="<?php esc_attr_e( $this->timestamp ) ?>"
+								     data-nonce="<?php esc_attr_e( $nonce ) ?>" data-icon="<?php esc_attr_e( $icon ) ?>"
+								     data-set_id="<?php esc_attr_e( $set_id ) ?>" data-set_mode="<?php esc_attr_e( $set_mode ) ?>"
+								     data-type="<?php esc_attr_e( $type ) ?>" data-key="<?php esc_attr_e( $key ) ?>"
+								     data-max_size="<?php esc_attr_e( $max_size ) ?>" data-max_size_error="<?php esc_attr_e( $max_size_error ) ?>"
+								     data-min_size_error="<?php esc_attr_e( $min_size_error ) ?>" data-extension_error="<?php esc_attr_e( $extension_error ) ?>"
+								     data-allowed_types="<?php esc_attr_e( $allowed_types ) ?>" data-upload_text="<?php esc_attr_e( $upload_text ) ?>"
+								     data-max_files_error="<?php esc_attr_e( $max_files_error ) ?>" data-upload_help_text="<?php esc_attr_e( $upload_help_text ) ?>">
+									<?php echo $button_text ?>
+								</div>
 
-					$nonce = wp_create_nonce( 'um_upload_nonce-' . $this->timestamp );
+								<div class="um-modal-footer">
+									<div class="um-modal-right">
+										<a href="#" class="um-modal-btn um-finish-upload file disabled" data-key="<?php esc_attr_e( $key ) ?>" data-change="<?php esc_attr_e( 'Change file', 'ultimate-member' ) ?>" data-processing="<?php esc_attr_e( 'Processing...', 'ultimate-member' ) ?>">
+											<?php _e( 'Save', 'ultimate-member' ) ?>
+										</a>
+										<a href="#" class="um-modal-btn alt" data-action="um_remove_modal">
+											<?php _e( 'Cancel', 'ultimate-member' ) ?>
+										</a>
+									</div>
+									<div class="um-clear"></div>
+								</div>
+							</div>
+						</div>
 
-					$output .= '<div class="um-single-file-upload" data-timestamp="' . esc_attr( $this->timestamp ) . '" data-nonce="' . $nonce . '" data-icon="' . esc_attr( $icon ) . '" data-set_id="' . esc_attr( $set_id ) . '" data-set_mode="' . esc_attr( $set_mode ) . '" data-type="' . esc_attr( $type ) . '" data-key="' . esc_attr( $key ) . '" data-max_size="' . esc_attr( $max_size ) . '" data-max_size_error="' . esc_attr( $max_size_error ) . '" data-min_size_error="' . esc_attr( $min_size_error ) . '" data-extension_error="' . esc_attr( $extension_error ) . '"  data-allowed_types="' . esc_attr( $allowed_types ) . '" data-upload_text="' . esc_attr( $upload_text ) . '" data-max_files_error="' . esc_attr( $max_files_error ) . '" data-upload_help_text="' . esc_attr( $upload_help_text ) . '">' . $button_text . '</div>';
+						<?php if ( $this->is_error( $key ) ) {
+							echo $this->field_error( $this->show_error( $key ) );
+						} ?>
 
-					$output .= '<div class="um_uploader_block"></div>';
+					</div>
 
-					$output .= '<div class="um-modal-footer">
-                                    <div class="um-modal-right">
-                                        <a href="#" class="um-modal-btn um-finish-upload file disabled" data-key="' . $key . '" data-change="' . __( 'Change file' ) . '" data-processing="' . __( 'Processing...', 'ultimate-member' ) . '"> ' . __( 'Save', 'ultimate-member' ) . '</a>
-                                        <a href="#" class="um-modal-btn alt" data-action="um_remove_modal"> ' . __( 'Cancel', 'ultimate-member' ) . '</a>
-                                    </div>
-                                    <div class="um-clear"></div>
-                                </div>';
-
-					$output .= '</div>';
-
-					$output .= '</div>';
-
-					/* end */
-
-					if ($this->is_error( $key )) {
-						$output .= $this->field_error( $this->show_error( $key ) );
-					}
-
-					$output .= '</div>';
-
+					<?php $output = ob_get_clean();
 					break;
 
 				/* Select dropdown */

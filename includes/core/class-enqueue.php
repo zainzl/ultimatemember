@@ -68,21 +68,22 @@ if ( ! class_exists( 'um\core\Enqueue' ) ) {
 
 
 			wp_register_script( 'um-fileupload', $this->js_baseurl . 'um-fileupload' . $this->suffix . '.js', array( 'jquery', 'plupload' ), ultimatemember_version, true );
+			wp_register_script( 'um-fileupload-new', $this->js_baseurl . 'um-fileupload-new' . $this->suffix . '.js', array( 'jquery', 'plupload' ), ultimatemember_version, true );
 			/*wp_localize_script( 'um-fileupload', 'um_uploader', array(
 				'includes_url' => includes_url(),
 				'messages' => array(
-					'max_files_count' => __( 'Added maximum number of files', WP_OFFICE_TEXT_DOMAIN ),
-					'cancel_upload' => __( 'Cancel Upload', WP_OFFICE_TEXT_DOMAIN ),
-					'cancelled' => __( 'Upload Cancelled', WP_OFFICE_TEXT_DOMAIN ),
-					'cancel' => __( 'Cancel', WP_OFFICE_TEXT_DOMAIN ),
-					'file_size_error' => __( 'File exceeds size limit', WP_OFFICE_TEXT_DOMAIN ),
-					'delete_file' => __( 'Delete file', WP_OFFICE_TEXT_DOMAIN ),
-					'removed' => __( 'File removed', WP_OFFICE_TEXT_DOMAIN ),
-					'drop_files_here' => sprintf( __( 'Drop files here %s or %s', WP_OFFICE_TEXT_DOMAIN ), '<br />', '<br />' ),
+					'max_files_count' => __( 'Added maximum number of files', 'ultimate-member' ),
+					'cancel_upload' => __( 'Cancel Upload', 'ultimate-member' ),
+					'cancelled' => __( 'Upload Cancelled', 'ultimate-member' ),
+					'cancel' => __( 'Cancel', 'ultimate-member' ),
+					'file_size_error' => __( 'File exceeds size limit', 'ultimate-member' ),
+					'delete_file' => __( 'Delete file', 'ultimate-member' ),
+					'removed' => __( 'File removed', 'ultimate-member' ),
+					'drop_files_here' => sprintf( __( 'Drop files here %s or %s', 'ultimate-member' ), '<br />', '<br />' ),
 					'select_files_button' => $button,
-					'loading' => __( 'Loading', WP_OFFICE_TEXT_DOMAIN ),
-					'disallowed_ext' => __( 'Disallowed extensions', WP_OFFICE_TEXT_DOMAIN ),
-					'max_file_size' => __( 'Max file size', WP_OFFICE_TEXT_DOMAIN )
+					'loading' => __( 'Loading', 'ultimate-member' ),
+					'disallowed_ext' => __( 'Disallowed extensions', 'ultimate-member' ),
+					'max_file_size' => __( 'Max file size', 'ultimate-member' )
 				)
 			) );*/
 
@@ -110,10 +111,10 @@ if ( ! class_exists( 'um\core\Enqueue' ) ) {
 			wp_register_script( 'select2', $this->js_baseurl . 'select2/select2.full.min.js', array( 'jquery', 'jquery-masonry' ), ultimatemember_version, true );
 			wp_register_script( 'um-tipsy', $this->js_baseurl . 'um-tipsy' . $this->suffix . '.js', array( 'jquery' ), ultimatemember_version, true );
 			wp_register_script( 'um-raty', $this->js_baseurl . 'um-raty' . $this->suffix . '.js', array( 'jquery' ), ultimatemember_version, true );
-			//wp_register_script( 'um-crop', $this->js_baseurl . 'um-crop' . $this->suffix . '.js', array( 'jquery' ), ultimatemember_version, true );
+			wp_register_script( 'um-crop', $this->js_baseurl . 'um-crop' . $this->suffix . '.js', array( 'jquery' ), ultimatemember_version, true );
 
 			wp_register_script( 'um-functions', $this->js_baseurl . 'um-functions' . $this->suffix . '.js', array( 'jquery', 'wp-util', 'um-tipsy', 'um-scrollbar' ), ultimatemember_version, true );
-			wp_register_script( 'um-scripts', $this->js_baseurl . 'um-scripts' . $this->suffix . '.js', array( 'um-functions', 'um-tipsy', 'um-raty', 'jcrop', 'select2', 'um-jquery-form', 'um-fileupload' ), ultimatemember_version, true );
+			wp_register_script( 'um-scripts', $this->js_baseurl . 'um-scripts' . $this->suffix . '.js', array( 'um-functions', 'um-tipsy', 'um-raty', 'um-crop', 'jcrop', 'select2', 'um-jquery-form', 'um-fileupload', 'um-fileupload-new' ), ultimatemember_version, true );
 
 			wp_register_script( 'um-responsive', $this->js_baseurl . 'um-responsive' . $this->suffix . '.js', array( 'um-scripts' ), ultimatemember_version, true );
 			wp_register_script( 'um-modal', $this->js_baseurl . 'um-modal' . $this->suffix . '.js', array( 'um-responsive' ), ultimatemember_version, true );
@@ -164,7 +165,21 @@ if ( ! class_exists( 'um\core\Enqueue' ) ) {
 			 */
 			$localize_data = apply_filters( 'um_enqueue_localize_data', array(
 				'nonce' => wp_create_nonce( "um-frontend-nonce" ),
-				'includes_url' => includes_url()
+				'includes_url' => includes_url(),
+				'messages' => array(
+					'max_files_count' => __( 'Added maximum number of files', 'ultimate-member' ),
+					'cancel_upload' => __( 'Cancel Upload', 'ultimate-member' ),
+					'cancelled' => __( 'Upload Cancelled', 'ultimate-member' ),
+					'cancel' => __( 'Cancel', 'ultimate-member' ),
+					'file_size_error' => __( 'File exceeds size limit', 'ultimate-member' ),
+					'delete_file' => __( 'Delete file', 'ultimate-member' ),
+					'removed' => __( 'File removed', 'ultimate-member' ),
+					'drop_files_here' => sprintf( __( 'Drop files here %s or %s', 'ultimate-member' ), '<br />', '<br />' ),
+					'select_files_button' => '<a href="javascript:void(0);" id="um_fileupload_button_" class="um-button um-btn-auto-width">Select File</a>',
+					'loading' => __( 'Loading', 'ultimate-member' ),
+					'disallowed_ext' => __( 'Disallowed extensions', 'ultimate-member' ),
+					'max_file_size' => __( 'Max file size', 'ultimate-member' )
+				)
 			) );
 
 			wp_localize_script( 'um-scripts', 'um_scripts', $localize_data );

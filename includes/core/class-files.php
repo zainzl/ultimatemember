@@ -148,14 +148,6 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 				return;
 			}
 
-			if ( ! isset( $_GET['download_chat_history'] ) || 'true' != $_GET['download_chat_history'] ) {
-				return;
-			}
-
-			if ( empty( $_GET['conversation_id'] ) ) {
-				return;
-			}
-
 			@ignore_user_abort( true );
 			@set_time_limit( 0 );
 
@@ -164,81 +156,6 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			$gdpr_folder = $this->get_upload_dir( 'ultimatemember/gdpr' );
 			$filename = md5( $user_id .  $_GET['conversation_id'] . 'gdpr_data_salt' );
 			$filepath = $gdpr_folder . DIRECTORY_SEPARATOR . $filename . '.txt';
-
-			global $wpdb;
-			$file_content = '';
-			$user_id = um_user('ID');
-			if ( $_GET['conversation_id'] == 'all' ) {
-				$conversations = UM()->Messaging_API()->api()->get_conversations( $user_id );
-
-				if ( ! empty( $conversations ) ) {
-					foreach ( $conversations as $conversation ) {
-						$messages = $wpdb->get_results( $wpdb->prepare(
-							"SELECT * 
-							FROM {$wpdb->prefix}um_messages
-							WHERE conversation_id = %d 
-							ORDER BY time ASC",
-							$conversation->conversation_id
-						), ARRAY_A );
-
-						if ( ! empty( $messages ) ) {
-
-							um_fetch_user( $conversation->user_b );
-							$from = um_user( 'display_name' );
-							um_fetch_user( $conversation->user_a );
-							$to = um_user( 'display_name' );
-
-							if ( ! empty( $file_content ) ) {
-								$file_content .= "\r\n\r\n";
-							}
-							$file_content .= "============= Conversation \"{$from}\" -> \"{$to}\" =============\r\n\r\n";
-
-							foreach ( $messages as $message ) {
-								if ( $message['author'] == get_current_user_id() ) {
-									$author = __( 'Me', 'um-messaging' );
-								} else {
-									um_fetch_user( $message['author'] );
-									$author = um_user( 'display_name' );
-								}
-
-								$file_content .= "[{$author} - {$message['time']}]\r\n{$message['content']}\r\n\r\n";
-							}
-						}
-					}
-				}
-			} else {
-				$messages = $wpdb->get_results( $wpdb->prepare(
-					"SELECT * 
-					FROM {$wpdb->prefix}um_messages
-					WHERE conversation_id = %d 
-					ORDER BY time ASC",
-					$_GET['conversation_id']
-				), ARRAY_A );
-
-				if ( ! empty( $messages ) ) {
-					foreach ( $messages as $message ) {
-						if ( $message['author'] == get_current_user_id() ) {
-							$author = __( 'Me', 'um-messaging' );
-						} else {
-							um_fetch_user( $message['author'] );
-							$author = um_user( 'display_name' );
-						}
-
-						$file_content .= "[{$author} - {$message['time']}]\r\n{$message['content']}\r\n\r\n";
-					}
-				}
-			}
-
-			um_fetch_user( $user_id );
-
-			if ( empty( $file_content ) ) {
-				return;
-			}
-
-
-			$gdpr_file   = fopen( $filepath, 'w+' );
-			fwrite( $gdpr_file, $file_content );
-			fclose( $gdpr_file );
 
 			$fsize = filesize( $filepath );
 
@@ -287,60 +204,56 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			$target_path = $targetDir . $new_name;
 
 			// Chunking might be enabled
-			$chunk = isset($_REQUEST["chunk"]) ? intval($_REQUEST["chunk"]) : 0;
-			$chunks = isset($_REQUEST["chunks"]) ? intval($_REQUEST["chunks"]) : 0;
+			$chunk = isset( $_REQUEST["chunk"] ) ? intval( $_REQUEST["chunk"] ) : 0;
+			$chunks = isset( $_REQUEST["chunks"] ) ? intval( $_REQUEST["chunks"] ) : 0;
 
-			if (!is_dir($targetDir) || !$dir = opendir($targetDir)) {
+			if ( ! is_dir( $targetDir ) || ! $dir = opendir( $targetDir ) ) {
 				exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open directory', 'ultimate-member' ) ) ) );
 			}
 
-			while (($file = readdir($dir)) !== false) {
+			while ( ( $file = readdir( $dir ) ) !== false ) {
 				$tmpfilePath = $targetDir . DIRECTORY_SEPARATOR . $file;
-				if ($tmpfilePath == "{$target_path}.part") {
+				if ( $tmpfilePath == "{$target_path}.part" ) {
 					continue;
 				}
 
-				if (preg_match('/\.part$/', $file) && (filemtime($tmpfilePath) < time() - 360000)) {
-					@unlink($tmpfilePath);
+				if ( preg_match( '/\.part$/', $file ) && ( filemtime( $tmpfilePath ) < time() - 360000 ) ) {
+					@unlink( $tmpfilePath );
 				}
 			}
-			closedir($dir);
+			closedir( $dir );
 
 			// Open temp file
-			if (!$out = @fopen("{$target_path}.part", $chunks ? "ab" : "wb")) {
+			if ( ! $out = @fopen( "{$target_path}.part", $chunks ? "ab" : "wb" ) ) {
 				exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open output stream', 'ultimate-member' ) ) ) );
 			}
 
-			if (!empty($_FILES)) {
-				if ($_FILES["file"]["error"] || !is_uploaded_file($_FILES["file"]["tmp_name"])) {
+			if ( ! empty( $_FILES ) ) {
+				if ( $_FILES["file"]["error"] || ! is_uploaded_file( $_FILES["file"]["tmp_name"] ) ) {
 					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to move uploaded file', 'ultimate-member' ) ) ) );
 				}
 
 				// Read binary input stream and append it to temp file
-				if (!$in = @fopen($_FILES["file"]["tmp_name"], "rb")) {
+				if ( ! $in = @fopen( $_FILES["file"]["tmp_name"], "rb" ) ) {
 					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
 				}
 			} else {
-				if (!$in = @fopen("php://input", "rb")) {
+				if ( ! $in = @fopen( "php://input", "rb" ) ) {
 					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
 				}
 			}
 
-			while ($buff = fread($in, 4096)) {
-				fwrite($out, $buff);
+			while ( $buff = fread( $in, 4096 ) ) {
+				fwrite( $out, $buff );
 			}
 
-			@fclose($out);
-			@fclose($in);
+			@fclose( $out );
+			@fclose( $in );
 
 			// Check if file has been uploaded
-			if (!$chunks || $chunk == $chunks - 1) {
+			if ( ! $chunks || $chunk == $chunks - 1 ) {
 				// Strip the temp .part suffix off
-				$random_digit = rand(0000, 9999);
-				$branch = array();
-				if( isset( $_REQUEST['category'] ) ) {
-					$branch = $this->get_category_branch_array( $_REQUEST['category'], 'folder_name');
-				}
+				$random_digit = rand( 0000, 9999 );
 
 				$new_target_path = $this->get_upload_dir( 'ultimatemember/files/' . $user_id . $random_digit . $new_name );
 
@@ -349,10 +262,9 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 				}
 
 				//insert file data to usermeta
-
-				exit(json_encode(array('status' => true, 'message' => 'full_success', 'id' => $file_id)));
+				exit( json_encode( array( 'status' => true, 'message' => 'full_success', 'id' => $file_id ) ) );
 			} else {
-				exit(json_encode(array('status' => true, 'message' => 'part_success')));
+				exit( json_encode( array( 'status' => true, 'message' => 'part_success' ) ) );
 			}
 		}
 
@@ -683,7 +595,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 		 *
 		 * @return array
 		 */
-		function create_and_copy_image($source, $destination, $quality = 100) {
+		function create_and_copy_image( $source, $destination, $quality = 100 ) {
 
 			$info = @getimagesize($source);
 
@@ -1446,7 +1358,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			$computed_size = round(pow(1024, $base - floor($base)), $precision);
 			$unit = $suffixes[ floor($base) ];
 
-			return   $computed_size.' '.$unit;
+			return $computed_size.' '.$unit;
 
 		}
 
@@ -1529,7 +1441,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 		/**
 		 *
 		 */
-		function ajax_file_upload(){
+		function ajax_file_upload() {
 			$ret['error'] = null;
 			$ret = array();
 

@@ -159,19 +159,45 @@ jQuery(document).ready(function() {
 	jQuery(document).on('click', '.um .um-single-file-preview a.cancel', function(e){
 		e.preventDefault();
 		var parent = jQuery(this).parents('.um-field');
-		var src = jQuery(this).parents('.um-field').find('.um-single-fileinfo a').attr('href');
+		/*var src = jQuery(this).parents('.um-field').find('.um-single-fileinfo a').attr('href');
 		parent.find('.um-single-file-preview').hide();
 		parent.find('.um-btn-auto-width').html('Upload');
 		parent.find('input[type=hidden]').val('empty_file');
+*/
 
-		wp.ajax.send( 'um_remove_file', {
+		parent.find('.um_uploader_block').show();
+		parent.find('.um-single-file-preview').hide();
+
+		/*wp.ajax.send( 'um_remove_file', {
 			data: {
 				src: src,
 				nonce: um_scripts.nonce
 			}
 		});
-
+*/
 		return false;
+	});
+
+
+	jQuery(document).on( 'click', '.um .um-single-file-preview a.change', function(e) {
+		var parent = jQuery(this).parents('.um-field');
+
+		parent.find('.um_uploader_block').show();
+		parent.find('.um-single-fileinfo a').hide();
+
+		jQuery(this).siblings('.back').show();
+		jQuery(this).hide();
+	});
+
+
+	jQuery(document).on( 'click', '.um .um-single-file-preview a.back', function(e) {
+		var parent = jQuery(this).parents('.um-field');
+
+		parent.find('.um_uploader_block').hide();
+		parent.find('.um-single-fileinfo a').show();
+
+		jQuery(this).siblings('.change').show();
+		jQuery(this).hide();
 	});
 
 

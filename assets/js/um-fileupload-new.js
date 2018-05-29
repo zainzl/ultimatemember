@@ -7,10 +7,10 @@
                 default_settings = {
                     object : this,
                     uniqid : uniqid,
-                    browse_button: "wpo_fileupload_button_" + uniqid,
-                    container: "wpo_fileupload_inner_" + uniqid,
-                    drop_element: "wpo_drop_area_" + uniqid,
-                    filelist: "wpo_fileupload_filelist_" + uniqid,
+                    browse_button: "um_fileupload_button_" + uniqid,
+                    container: "um_fileupload_inner_" + uniqid,
+                    drop_element: "um_drop_area_" + uniqid,
+                    /*filelist: "um_fileupload_filelist_" + uniqid,*/
                     runtimes: "html5,flash,html4",
                     max_files: 0,
                     chunk_size: '10mb',
@@ -42,28 +42,27 @@
             var description = '';
 
             if( settings.filters.mime_types.extensions != '*' && settings.disallowed_extensions.length > 0 ) {
-                description = wpo_uploader.messages.disallowed_ext + ': ' + settings.disallowed_extensions.join(', ') + '<br />';
+                description = um_scripts.messages.disallowed_ext + ': ' + settings.disallowed_extensions.join(', ') + '<br />';
             }
 
             if( settings.filters.max_file_size != '' ) {
                 var size = parseInt( settings.filters.max_file_size ) / 1024;
-                description += wpo_uploader.messages.max_file_size + ': ' + size + 'Kb';
+                description += um_scripts.messages.max_file_size + ': ' + size + 'Kb';
             }
 
-            $this.addClass('wpo_fileupload');
-            $this.html('<div class="wpo_fileupload_inner" id="wpo_fileupload_inner_' + uniqid + '">' +
-                '<div class="wpo_drop_area" id="wpo_drop_area_' + uniqid + '">' +
-                '<span class="wpo_drop_instructions">' +
-                wpo_uploader.messages.drop_files_here +
+            $this.addClass('um_fileupload');
+            $this.html('<div class="um_fileupload_inner" id="um_fileupload_inner_' + uniqid + '">' +
+                '<div class="um_drop_area" id="um_drop_area_' + uniqid + '">' +
+                '<span class="um_drop_instructions">' +
+                um_scripts.messages.drop_files_here +
                 '</span>' +
                 '<br />' +
-                wpo_uploader.messages.select_files_button.replace(/wpo_fileupload_button_/g, settings.browse_button ) +
+                um_scripts.messages.select_files_button.replace(/um_fileupload_button_/g, settings.browse_button ) +
                 '<input type="hidden" name="' + name + '" /><br />' +
                 '<span class="description">' + description + '</span>' +
                 '</div>' +
                 '</div>' +
-                '<div class="wpo_fileupload_messages"></div>' +
-                '<div class="wpo_fileupload_filelist"></div>');
+                '<div class="um_fileupload_messages"></div>');
 
 
             uploader = new plupload.Uploader( settings );
@@ -92,19 +91,19 @@
             }
         },
         progress_bar_init: function( id, size ) {
-            return '<div class="wpo_progress_bar" id="wpo_progress_bar_' + id + '">' +
-                '<div class="wpo_progress_bar_inner" style="right: 100%;"></div>' +
-                '<div class="wpo_progress_bar_content">0%</div>' +
-                '<div class="wpo_file_size">' + size + '</div>' +
+            return '<div class="um_progress_bar" id="um_progress_bar_' + id + '">' +
+                '<div class="um_progress_bar_inner" style="right: 100%;"></div>' +
+                '<div class="um_progress_bar_content">0%</div>' +
+                '<div class="um_file_size">' + size + '</div>' +
                 '</div>';
         },
         progress_bar_value: function( id, value ) {
-            jQuery('#' + id + ' .wpo_progress_bar_inner').css('right', ( 100 - value ) +  '%' );
+            jQuery('#' + id + ' .um_progress_bar_inner').css('right', ( 100 - value ) +  '%' );
             if( value < 100 ) {
-                jQuery('#' + id + ' .wpo_progress_bar_content').html(value + '%');
+                jQuery('#' + id + ' .um_progress_bar_content').html(value + '%');
             } else {
-                jQuery('#' + id + ' .wpo_progress_bar_content').html( 'Completed' );
-                jQuery('#wpo_progress_bar_' + id ).addClass( 'wpo_file_completed' );
+                jQuery('#' + id + ' .um_progress_bar_content').html( 'Completed' );
+                jQuery('#um_progress_bar_' + id ).addClass( 'um_file_completed' );
             }
         },
         get_uploader: function() {
@@ -140,7 +139,7 @@
         addMessage: function( message ) {
             var id = methods.uniqid.apply( this, [] );
             notifications.push( id );
-            $(this).find('.wpo_fileupload_messages').append("<li id='" + id + "'>" + message + "</li>");
+            $(this).find('.um_fileupload_messages').append("<li id='" + id + "'>" + message + "</li>");
             setTimeout( function() {
                 if( typeof( notifications[0] ) !== 'undefined' ) {
                     $( '#' + notifications[0] ).remove();
@@ -172,7 +171,7 @@
 })( jQuery );
 
 
-jQuery( documet ).ready( function() {
+jQuery( document ).ready( function() {
     jQuery('.um_uploader_block').umFileUploader({
         name : 'um_uploader',
         max_files : 0,
@@ -182,14 +181,14 @@ jQuery( documet ).ready( function() {
                 title: 'Allowed Files',
                 extensions: 'jpg'
             }],
-            max_file_size: max_file_size
+            //max_file_size: max_file_size
         },
         disallowed_extensions: ['php', 'asp', 'exe', 'com', 'htaccess', 'phtml', 'php3', 'php4', 'php5', 'php6'],
         FilesAdded : function( up, files ) {
             var disallowed = up.settings.disallowed_extensions,
                 extension;
 
-            jQuery( up.settings.object ).find('.wpo_fileupload_messages > div').remove();
+            jQuery( up.settings.object ).find('.um_fileupload_messages > div').remove();
             jQuery.each(files, function (i, file) {
                 extension = file.name.split('.').pop();
 
@@ -207,13 +206,13 @@ jQuery( documet ).ready( function() {
                 var size = typeof file.size !== 'undefined' ? plupload.formatSize( file.size ) : '';
                 var progress = jQuery( up.settings.object ).wpoFileUploader( 'progress_bar_init', file.id, size );
                 //debugger;
-                jQuery(up.settings.object)
-                    .find('.wpo_fileupload_filelist')
+                /*jQuery(up.settings.object)
+                    .find('.um_fileupload_filelist')
                     .prepend('<ul data-id="' + file.id + '" id="' + file.id + '">' +
-                        '<li class="wpo_file_icon"></li>' +
-                        '<li class="wpo_file_title">' + file.name + ' <span class="wpo_file_edit"> click to edit</span></li>' +
-                '<li class="wpo_file_progress">' + progress + '</li>' +
-                '</ul>');
+                        '<li class="um_file_icon"></li>' +
+                        '<li class="um_file_title">' + file.name + ' <span class="um_file_edit"> click to edit</span></li>' +
+                '<li class="um_file_progress">' + progress + '</li>' +
+                '</ul>');*/
 
             });
 
@@ -239,18 +238,10 @@ jQuery( documet ).ready( function() {
                     load_content( list_table_uniqueid );
                     return true;
                 } else if( typeof response.status != 'undefined' && response.status == false ) {
-                    jQuery(this).wpo_notice({
-                        message: response.message,
-                        type: 'error'
-                    });
                     jQuery('#' + file.id ).remove();
                     return false;
                 }
             }
-            jQuery(this).wpo_notice({
-                message: 'Unknown error',
-                type: 'error'
-            });
             jQuery('#' + file.id ).remove();
         },
         Error : function( up, error ) {
