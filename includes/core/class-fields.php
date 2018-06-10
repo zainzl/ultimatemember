@@ -2321,11 +2321,7 @@ if ( ! class_exists( 'um\core\Fields' ) ) {
 								<div class="um-single-file-preview" data-key="<?php esc_attr_e( $key ) ?>"></div>
 							<?php } ?>
 
-							<div class="um_uploader_block" style="<?php if ( ! empty( $field_value ) ) { ?>display:none;<?php } ?>"></div>
-
-							<!--<a href="#" data-modal="um_upload_single" data-modal-size="<?php /*esc_attr_e( $modal_size ) */?>" data-modal-copy="1" class="um-button um-btn-auto-width">
-								<?php /*echo $button_text */?>
-							</a>-->
+							<div class="um_uploader_block" data-action="um_fileupload" style="<?php if ( ! empty( $field_value ) ) { ?>display:none;<?php } ?>"></div>
 						</div>
 
 						<!-- modal hidden -->

@@ -175,7 +175,7 @@ jQuery( document ).ready( function() {
     jQuery('.um_uploader_block').umFileUploader({
         name : 'um_uploader',
         max_files : 0,
-        url : 'ajax_plupload_process',
+        url : wp.ajax.settings.url,
         filters: {
             mime_types: [{
                 title: 'Allowed Files',
@@ -204,7 +204,7 @@ jQuery( document ).ready( function() {
                 }
 
                 var size = typeof file.size !== 'undefined' ? plupload.formatSize( file.size ) : '';
-                var progress = jQuery( up.settings.object ).wpoFileUploader( 'progress_bar_init', file.id, size );
+                var progress = jQuery( up.settings.object ).umFileUploader( 'progress_bar_init', file.id, size );
                 //debugger;
                 /*jQuery(up.settings.object)
                     .find('.um_fileupload_filelist')
@@ -220,13 +220,11 @@ jQuery( document ).ready( function() {
             up.start();
         },
         BeforeUpload: function(up) {
-            var file_cat_id = jQuery( '#category_id' ).val();
-            var file_assigns = jQuery( 'input[name="file_assigns"]' ).val();
-            up.settings.multipart_params.category = file_cat_id;
-            up.settings.multipart_params.assigns = file_assigns;
+            console.log( up );
+            up.settings.multipart_params.action = jQuery( this ).data( 'action' );
         },
         UploadProgress : function( up, file ) {
-            jQuery( up.settings.object ).wpoFileUploader( 'progress_bar_value', file.id, file.percent );
+            jQuery( up.settings.object ).umFileUploader( 'progress_bar_value', file.id, file.percent );
         },
         FileUploaded : function(up, file, data) {
             var response = jQuery.parseJSON(data.response);
