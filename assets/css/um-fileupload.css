@@ -63,9 +63,49 @@
 .um-single-image-preview a.cancel i:before,
 .um-single-file-preview a.cancel i:before{line-height:inherit}
 
-/*
-	- file info
-*/
+
+
+.um-single-image-preview a.change,
+.um-single-image-preview a.back,
+.um-single-file-preview a.change,
+.um-single-file-preview a.back {
+	position: absolute;
+	top: 20px;
+	right: -15px;
+	width: 30px;
+	height: 30px;
+	-moz-border-radius: 999px;
+	-webkit-border-radius: 999px;
+	border-radius: 999px;
+	background: #ddd;
+	cursor: pointer;
+	text-decoration: none !important;
+	z-index: 666;
+	opacity: 0.75;
+}
+
+.um-single-image-preview a.change i,
+.um-single-image-preview a.back i,
+.um-single-file-preview a.change i,
+.um-single-file-preview a.back i {
+	font-size: 16px;
+	color: #888;
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 100%;
+	line-height: 30px;
+	overflow: hidden;
+}
+.um-single-image-preview a.change i:before,
+.um-single-image-preview a.back i:before,
+.um-single-file-preview a.change i:before,
+.um-single-file-preview a.back i:before{line-height:inherit}
+
+
+	/*
+        - file info
+    */
 
 .um-single-fileinfo {
 	padding: 26px 0 20px 0;
@@ -198,3 +238,152 @@ div.um-modal .upload:hover {
 }
 
 .um-modal input[type="file"]::-webkit-file-upload-button { cursor: pointer }
+
+
+
+.um_fileupload_inner {
+	width: 100%;
+	float: left;
+	height: 180px;
+	position: relative;
+}
+
+.um_fileupload_inner .um_drop_area {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	box-sizing: border-box;
+	padding: 25px;
+	border: 2px dashed #ddd;
+	text-align: center;
+	color: #aaa;
+	line-height: 25px;
+	font-size: 18px;
+}
+
+.um_fileupload_inner .um_drop_area * {
+	vertical-align: middle;
+}
+
+.um_fileupload_messages, .um_fileupload_filelist {
+	width: 100%;
+	float: left;
+	padding: 0;
+	margin: 0;
+}
+
+.um_fileupload_filelist > ul {
+	width: 100%;
+	float: left;
+	display: block;
+	margin: 10px 0;
+	list-style: none;
+}
+
+.um_fileupload_filelist > ul > li {
+	display: inline-block;
+	float: left;
+	margin: 0;
+	padding: 0;
+	height: 30px;
+	line-height: 30px;
+}
+
+.um_fileupload_filelist .um_file_icon {
+	width: 20px;
+}
+
+.um_fileupload_filelist .um_file_title {
+	width: 60%;
+	cursor: pointer;
+	color: #777;
+	text-align: left;
+}
+
+.um_fileupload_filelist .um_file_title:hover {
+	color: #000;
+}
+
+.um_fileupload_filelist .um_file_title:hover .um_file_edit {
+	display: inline;
+}
+
+.um_fileupload_filelist .um_file_progress {
+	width: calc( 40% - 20px );
+}
+
+.um_progress_bar {
+	width: 100%;
+	position: relative;
+	height: 30px;
+	border: 1px solid #ddd;
+}
+
+.um_progress_bar_inner {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	background: #b5d2ff;
+	border-right: 1px solid #ddd;
+	z-index: 2;
+}
+
+.um_progress_bar_content, .um_file_size {
+	z-index: 3;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: transparent;
+	text-align: center;
+	font-size: 12px;
+	line-height: 30px;
+}
+
+.um_file_size {
+	text-align: right;
+	padding: 0 10px 0 0;
+}
+
+.um_button_select_files  {
+	display: inline-block !important;
+	float: none !important;
+}
+
+.um_fileupload_inner .um_default_button_wrapper {
+	display: inline-block !important;
+	float: none !important;
+}
+
+.um_upload_file  {
+	display: inline-block;
+}
+
+.um_drop_instructions {
+	margin-bottom: 5px;
+	display: inline-block;
+}
+
+.um_file_completed .um_progress_bar_inner {
+	background-color: #99c973;
+}
+
+
+.um_fileupload_filelist .um_file_edit {
+	color: #ccc;
+	display: none;
+}
+
+
+.um_files_icon {
+	float: left;
+	width: 48px;
+	height: 48px;
+	opacity: 0.5;
+}

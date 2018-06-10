@@ -27,7 +27,19 @@ if ( ! class_exists( 'UM_Functions' ) ) {
 		 * UM_Functions constructor.
 		 */
 		function __construct() {
-			$this->init_variables();
+
+		}
+
+
+		/**
+		 *
+		 */
+		function check_frontend_ajax_nonce() {
+			$nonce = isset( $_POST["nonce"] ) ? $_POST["nonce"] : "";
+
+			if ( ! wp_verify_nonce( $nonce, "um-frontend-nonce" ) ) {
+				wp_send_json_error( esc_js( __( "Wrong Nonce", 'ultimate-member' ) ) );
+			}
 		}
 
 

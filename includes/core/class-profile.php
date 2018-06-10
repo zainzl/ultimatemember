@@ -45,15 +45,20 @@ if ( ! class_exists( 'um\core\Profile' ) ) {
 		 * Delete profile avatar AJAX handler
 		 */
 		function ajax_delete_profile_photo() {
+			UM()->check_frontend_ajax_nonce();
+
 			/**
 			 * @var $user_id
 			 */
 			extract( $_REQUEST );
 
-			if ( ! UM()->roles()->um_current_user_can( 'edit', $user_id ) )
-				die( __( 'You can not edit this user' ) );
+			if ( ! UM()->roles()->um_current_user_can( 'edit', $user_id ) ) {
+				wp_send_json_error( esc_js( __( 'You can not edit this user', 'ultimate-member' ) ) );
+			}
 
 			UM()->files()->delete_core_user_photo( $user_id, 'profile_photo' );
+
+			wp_send_json_success();
 		}
 
 
@@ -61,15 +66,20 @@ if ( ! class_exists( 'um\core\Profile' ) ) {
 		 * Delete cover photo AJAX handler
 		 */
 		function ajax_delete_cover_photo() {
+			UM()->check_frontend_ajax_nonce();
+
 			/**
 			 * @var $user_id
 			 */
 			extract( $_REQUEST );
 
-			if ( ! UM()->roles()->um_current_user_can( 'edit', $user_id ) )
-				die( __( 'You can not edit this user' ) );
+			if ( ! UM()->roles()->um_current_user_can( 'edit', $user_id ) ) {
+				wp_send_json_error( esc_js( __( 'You can not edit this user', 'ultimate-member' ) ) );
+			}
 
 			UM()->files()->delete_core_user_photo( $user_id, 'cover_photo' );
+
+			wp_send_json_success();
 		}
 
 

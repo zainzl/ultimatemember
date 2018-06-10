@@ -1,29 +1,32 @@
+/**
+ *
+ */
 function um_admin_live_update_scripts() {
-
-	/*jQuery('.um-admin-modal-body:visible select').select2({
-		allowClear: false,
-		minimumResultsForSearch: 10
-	});*/
-
-	jQuery('.um-adm-conditional').each(function(){jQuery(this).trigger('change');});
-	
+	jQuery('.um-adm-conditional').each(function(){
+		jQuery(this).trigger('change');
+	});
 	jQuery('.um-admin-colorpicker').wpColorPicker();
-	
+	um_init_tooltips();
 }
 
-function um_admin_new_modal( id, ajax, size ){
-	
+
+/**
+ *
+ * @param id
+ * @param ajax
+ * @param size
+ */
+function um_admin_new_modal( id, ajax, size ) {
 	var modal = jQuery('body').find('.um-admin-overlay');
-	
+
 	jQuery('.tipsy').hide();
-	
+
 	um_admin_remove_modal();
-		
+
 	jQuery('body').addClass('um-admin-modal-open').append('<div class="um-admin-overlay" /><div class="um-admin-modal" />');
-	jQuery('#' + id).prependTo('.um-admin-modal');
-	jQuery('#' + id).show();
+	jQuery('#' + id).prependTo('.um-admin-modal').show();
 	jQuery('.um-admin-modal').show();
-	
+
 	jQuery('.um-admin-modal-head').append('<a href="#" data-action="UM_remove_modal" class="um-admin-modal-close"><i class="um-faicon-times"></i></a>');
 
 	if ( ajax == true ) {
@@ -33,53 +36,71 @@ function um_admin_new_modal( id, ajax, size ){
 	} else {
 		um_admin_modal_responsive();
 	}
-	
 }
 
+
+/**
+ *
+ * @param act_id
+ * @param arg1
+ * @param arg2
+ * @param arg3
+ * @returns {boolean}
+ */
 function um_admin_modal_ajaxcall( act_id, arg1, arg2, arg3 ) {
-	
-	in_row = '';
-	in_sub_row = '';
-	in_column = '';
-	in_group = '';
-	
-	if ( jQuery('.um-col-demon-settings').data('in_column') ) {
-		in_row = jQuery('.um-col-demon-settings').data('in_row');
-		in_sub_row = jQuery('.um-col-demon-settings').data('in_sub_row');
-		in_column = jQuery('.um-col-demon-settings').data('in_column');
-		in_group = jQuery('.um-col-demon-settings').data('in_group');
+
+	var in_row = '';
+	var in_sub_row = '';
+	var in_column = '';
+	var in_group = '';
+
+	var col_settings = jQuery('.um-col-demon-settings');
+	if ( col_settings.data('in_column') ) {
+		in_row = col_settings.data('in_row');
+		in_sub_row = col_settings.data('in_sub_row');
+		in_column = col_settings.data('in_column');
+		in_group = col_settings.data('in_group');
 	}
-	
-	jQuery.ajax({
-		url: um_admin_modal_data.ajax_url,
-		type: 'POST',
-		data: {act_id: act_id, arg1 : arg1, arg2 : arg2, arg3: arg3, in_row: in_row, in_sub_row: in_sub_row, in_column: in_column, in_group: in_group },
-		complete: function(){
+
+	wp.ajax.send( 'um_dynamic_modal_content', {
+		data: {
+			act_id: 	act_id,
+			arg1 : 		arg1,
+			arg2 : 		arg2,
+			arg3: 		arg3,
+			in_row: 	in_row,
+			in_sub_row:	in_sub_row,
+			in_column:	in_column,
+			in_group: 	in_group,
+			nonce: 		um_admin_scripts.nonce
+		},
+		complete: function() {
 			um_admin_modal_loaded();
 			um_admin_modal_responsive();
 		},
-		success: function(data){
+		success: function( data ) {
 
 			jQuery('.um-admin-modal').find('.um-admin-modal-body').html( data );
-			
-			um_responsive();
-			
+
+			um_admin_modal_responsive();
 			um_admin_live_update_scripts();
 
 			jQuery( "#_custom_dropdown_options_source" ).trigger('blur');
 
-			if ( jQuery('.um-admin-editor:visible').length > 0 ) {
+			var um_admin_editor = jQuery('.um-admin-editor:visible');
+
+			if ( um_admin_editor.length > 0 ) {
 
 				if ( act_id == 'um_admin_edit_field_popup' ) {
 
 					tinyMCE.execCommand('mceRemoveEditor', true, 'um_editor_edit');
-					jQuery('.um-admin-editor:visible').html( jQuery('.um-hidden-editor-edit').contents() );
+					um_admin_editor.html( jQuery('.um-hidden-editor-edit').contents() );
 					tinyMCE.execCommand('mceAddEditor', true, 'um_editor_edit');
-					
+
 					jQuery('.switch-html').trigger('click');
 					jQuery('.switch-html').trigger('click');
 					jQuery('.switch-tmce').trigger('click');
-					
+
 					jQuery('#um_editor_edit_ifr').height(200);
 
 					var editor = tinyMCE.get('um_editor_edit');
@@ -87,96 +108,123 @@ function um_admin_modal_ajaxcall( act_id, arg1, arg2, arg3 ) {
 					editor.setContent( jQuery('.um-admin-modal:visible .dynamic-mce-content').html() );
 
 				} else {
-                    tinyMCE.get('um_editor_new').setContent('');
+					tinyMCE.get('um_editor_new').setContent('');
 					tinyMCE.execCommand('mceRemoveEditor', true, 'um_editor_new');
-					jQuery('.um-admin-editor:visible').html( jQuery('.um-hidden-editor-new').contents() );
+					um_admin_editor.html( jQuery('.um-hidden-editor-new').contents() );
 					tinyMCE.execCommand('mceAddEditor', true, 'um_editor_new');
-					
+
 					jQuery('.switch-html').trigger('click');
 					jQuery('.switch-html').trigger('click');
 					jQuery('.switch-tmce').trigger('click');
-					
+
 					jQuery('#um_editor_new_ifr').height(200);
-					
+
 				}
-				
+
 			}
-
-			um_init_tooltips();
-			
 		},
-		error: function(data){
-
-		}
+		error: function( data ){}
 	});
+
 	return false;
 }
 
+
+/**
+ *
+ */
 function um_admin_modal_responsive() {
-	var required_margin = jQuery('.um-admin-modal:visible').innerHeight() / 2 + 'px';
-	jQuery('.um-admin-modal:visible').css({'margin-top': '-' + required_margin });
+	var um_admin_modal = jQuery('.um-admin-modal:visible');
+	var required_margin = um_admin_modal.innerHeight() / 2 + 'px';
+	um_admin_modal.css({'margin-top': '-' + required_margin });
 }
 
-function um_admin_remove_modal(){
 
-	if ( jQuery('.um-admin-editor:visible').length > 0 ) {
-	
+/**
+ *
+ */
+function um_admin_remove_modal() {
+	var um_admin_editor = jQuery('.um-admin-editor:visible');
+
+	if ( um_admin_editor.length > 0 ) {
+
 		if ( jQuery('.um-admin-modal:visible').find('form').parent().attr('id') == 'UM_edit_field' ) {
-		
+
 			tinyMCE.execCommand('mceRemoveEditor', true, 'um_editor_edit');
-			jQuery('.um-hidden-editor-edit').html( jQuery('.um-admin-editor:visible').contents() );
+			jQuery('.um-hidden-editor-edit').html( um_admin_editor.contents() );
 			tinyMCE.execCommand('mceAddEditor', true, 'um_editor_edit');
-		
+
 		} else {
-		
+
 			tinyMCE.execCommand('mceRemoveEditor', true, 'um_editor_new');
-			jQuery('.um-hidden-editor-new').html( jQuery('.um-admin-editor:visible').contents() );
+			jQuery('.um-hidden-editor-new').html( um_admin_editor.contents() );
 			tinyMCE.execCommand('mceAddEditor', true, 'um_editor_new');
-		
+
 		}
-				
+
 	}
-			
+
 	jQuery('body').removeClass('um-admin-modal-open');
 	jQuery('.um-admin-modal div[id^="UM_"]').hide().appendTo('body');
 	jQuery('.um-admin-modal,.um-admin-overlay').remove();
 }
 
+
+/**
+ *
+ */
 function um_admin_modal_preload() {
 	jQuery('.um-admin-modal:visible').addClass('loading');
 	jQuery('.um-admin-modal-body:visible').empty();
 }
 
+
+/**
+ *
+ */
 function um_admin_modal_loaded() {
 	jQuery('.um-admin-modal:visible').removeClass('loading');
 }
 
+
+/**
+ *
+ * @param aclass
+ */
 function um_admin_modal_size( aclass ) {
 	jQuery('.um-admin-modal:visible').addClass(aclass);
 }
 
+
+/**
+ *
+ * @param id
+ * @param value
+ */
 function um_admin_modal_add_attr( id, value ) {
 	jQuery('.um-admin-modal:visible').data( id, value );
 }
 
+
 /**
 	Custom modal scripting starts
 **/
+jQuery(document).ready( function() {
 
-jQuery(document).ready(function() {
-	
+
 	/**
 		disable link
 	**/
-	jQuery(document).on('click', '.um-admin-builder a, .um-admin-modal a', function(e){
+	jQuery(document).on('click', '.um-admin-builder a, .um-admin-modal a', function(e) {
 		e.preventDefault();
 		return false;
 	});
-	
+
+
 	/**
 		toggle area
 	**/
-	jQuery(document).on('click', '.um-admin-btn-toggle a', function(e){
+	jQuery(document).on('click', '.um-admin-btn-toggle a', function(){
 		var content = jQuery(this).parent().find('.um-admin-btn-content');
 		var link = jQuery(this);
 		if ( content.is(':hidden') ) {
@@ -190,7 +238,8 @@ jQuery(document).ready(function() {
 		}
 		um_admin_modal_responsive();
 	});
-	
+
+
 	/**
 		clone a condition
 	**/
@@ -201,15 +250,13 @@ jQuery(document).ready(function() {
 		var content = jQuery(this).parents('.um-admin-btn-content');
 		var length = content.find('.um-admin-cur-condition').length;
 		if ( length < 5 ) {
-			//content.find('select').select2('destroy');
-
 			var cloned = jQuery(this).parents('.um-admin-cur-condition').clone();
 			cloned.find('input[type=text],select').each(function(){
 				jQuery(this).attr('id', jQuery(this).attr('id') + length );
 				jQuery(this).attr('name', jQuery(this).attr('name') + length );
 			});
 			cloned.find('input[type=text]').val('');
-			cloned.find('.um-admin-new-condition').replaceWith('<p><a href="#" class="um-admin-remove-condition button um-admin-tipsy-n" title="Remove condition"><i class="um-icon-close" style="margin-right:0!important"></i></a></p>');
+			cloned.find('.um-admin-new-condition').replaceWith('<p><a href="#" class="um-admin-remove-condition button um-admin-tipsy-n" title="' + um_admin_modal_data.texts.remove_condition_title + '"><i class="um-icon-close" style="margin-right:0!important"></i></a></p>');
 
 			cloned.appendTo( content );
 			cloned.find('select').val('');
@@ -217,10 +264,11 @@ jQuery(document).ready(function() {
 			um_admin_modal_responsive();
 		} else {
 			jQuery(this).addClass('disabled');
-			alert( 'You already have 5 rules' );
+			alert( um_admin_modal_data.texts.rules_limit );
 		}
 	});
-	
+
+
 	/**
 		reset conditions
 	**/
@@ -233,7 +281,8 @@ jQuery(document).ready(function() {
 		um_admin_live_update_scripts();
 		um_admin_modal_responsive();
 	});
-	
+
+
 	/**
 		remove a condition
 	**/
@@ -245,19 +294,20 @@ jQuery(document).ready(function() {
 		um_admin_live_update_scripts();
 		um_admin_modal_responsive();
 	});
-	
+
+
 	/**
 		remove modal via action
 	**/
 	jQuery(document).on('click', '.um-admin-overlay, a[data-action="UM_remove_modal"]', function(){
 		um_admin_remove_modal();
 	});
-	
+
+
 	/**
 		fire new modal
 	**/
 	jQuery(document).on('click', 'a[data-modal^="UM_"], span[data-modal^="UM_"]', function(e){
-		
 		e.preventDefault();
 
 		var modal_id = jQuery(this).attr('data-modal');
@@ -283,7 +333,8 @@ jQuery(document).ready(function() {
 
 	});
 	
-	/**
+
+    /**
 		choose font icon
 	**/
 	jQuery(document).on('click', '.um-admin-icons span', function(){
@@ -292,7 +343,8 @@ jQuery(document).ready(function() {
 		jQuery(this).addClass('highlighted');
 		jQuery('#UM_fonticons').find('a.um-admin-modal-back').attr("data-code", icon);
 	});
-	
+
+
 	/**
 		submit font icon
 	**/
@@ -314,7 +366,8 @@ jQuery(document).ready(function() {
 			um_admin_remove_modal();
 		}
 	});
-	
+
+
 	/**
 		restore font icon
 	**/
@@ -322,14 +375,15 @@ jQuery(document).ready(function() {
 		var element = jQuery(this).parents('p');
 		jQuery('#UM_fonticons a.um-admin-modal-back').attr('data-code', '');
 		element.find('input[type=hidden]').val('');
-		element.find('.um-admin-icon-value').html('No Icon');
+		element.find('.um-admin-icon-value').html( um_admin_modal_data.texts.no_icon );
 
 		element = jQuery(this).parents('td');
 		element.find('input[type=hidden]').val('');
-		element.find('.um-admin-icon-value').html('No Icon');
+		element.find('.um-admin-icon-value').html( um_admin_modal_data.texts.no_icon );
 		jQuery(this).hide();
 	});
-	
+
+
 	/**
 		search font icons
 	**/
@@ -343,37 +397,34 @@ jQuery(document).ready(function() {
 		um_admin_modal_responsive();
 	});
 
-	
+
 	/**
 	 * Retrieve options from a callback function
 	 */
-	jQuery(document).on('blur',"#_custom_dropdown_options_source", function(){
-        var me = jQuery(this);
-        var _options = jQuery('textarea[id=_options]');
-        
-        if( me.val() != '' ){
-        	var um_option_callback = me.val();
-          	jQuery.ajax({
-				url: um_admin_modal_data.dropdown_ajax_url,
-				type: 'POST',
-				data: { um_option_callback: um_option_callback },
-				complete: function(){
-					
+	jQuery(document).on( 'blur', "#_custom_dropdown_options_source", function(){
+		var me = jQuery(this);
+		var _options = jQuery('textarea[id=_options]');
+
+		if ( me.val() != '' ) {
+			var um_option_callback = me.val();
+
+			wp.ajax.send( 'um_populate_dropdown_options', {
+				data: {
+					um_option_callback: um_option_callback,
+					nonce: um_admin_scripts.nonce
 				},
-				success: function( response ){
+				success: function( response ) {
 					var arr_opts = [];
-					
-					for (var key in response.data ){
-                         arr_opts.push( response.data[ key ] );
+
+					for ( var key in response.data ) {
+						arr_opts.push( response.data[ key ] );
 					}
 
 					_options.val( arr_opts.join('\n') );
-					
-		        }
+				}
 			});
 		}
 
 	});
 
 }); // end jQuery(document).ready
-

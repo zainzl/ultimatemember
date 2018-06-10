@@ -676,6 +676,17 @@ div.uimob960 .um-profile-photo a.um-profile-photo-img {
 
 /************************************************/
 
+@media screen and (max-width: 600px) {
+
+	.um-modal {
+		width: 96%;
+		margin-left: 2%;
+		left: 0;
+		top: 15px;
+	}
+
+}
+
 @media screen and (max-height: 400px) {
 
 	.ajax-upload-dragdrop span.icon {
@@ -730,21 +741,10 @@ div.uimob960 .um-profile-photo a.um-profile-photo-img {
 	.um-modal.no-photo .um-modal-header {
 		display: none;
 	}
-	
+
 	.ajax-upload-dragdrop span.icon,
 	.ajax-upload-dragdrop span.str {
 		display: none;
 	}
 
-}
-
-@media screen and (max-width: 600px) {
-	
-	.um-popup {
-		width: 96%;
-		margin-left: 2%;
-		left: 0;
-		top: 15px;
-	}
-	
 }

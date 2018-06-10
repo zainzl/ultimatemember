@@ -67,14 +67,221 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 
 
 		/**
+		 * Function for get and create uploads dir
+		 *
+		 * @param string $dir
+		 * @param string $dir_access
+		 * @param bool $create_dir
+		 * @return string
+		 */
+		function get_upload_dir( $dir = '', $dir_access = '', $create_dir = true ) {
+			if ( empty( $this->upload_dir ) ) {
+				$uploads = wp_upload_dir();
+				$this->upload_dir = str_replace( '/', DIRECTORY_SEPARATOR, $uploads['basedir'] . DIRECTORY_SEPARATOR );
+			}
+
+			$dir = str_replace( '/', DIRECTORY_SEPARATOR, $dir );
+
+			//check and create folder
+			if ( ! empty( $dir ) && $create_dir ) {
+				$folders = explode( DIRECTORY_SEPARATOR, $dir );
+				$cur_folder = '';
+				foreach ( $folders as $folder ) {
+					$prev_dir = $cur_folder;
+					$cur_folder .= $folder . DIRECTORY_SEPARATOR;
+					if ( ! is_dir( $this->upload_dir . $cur_folder ) && wp_is_writable( $this->upload_dir . $prev_dir ) ) {
+						mkdir( $this->upload_dir . $cur_folder, 0777 );
+
+						if ( $dir_access == 'deny' ) {
+							$htp = fopen( $this->upload_dir . $cur_folder . DIRECTORY_SEPARATOR . '.htaccess', 'w' );
+							fputs( $htp, 'deny from all' );
+						} elseif( $dir_access == 'allow' ) {
+							$htp = fopen( $this->upload_dir . $cur_folder . DIRECTORY_SEPARATOR . '.htaccess', 'w' );
+							fputs( $htp, 'allow from all' );
+						}
+					}
+				}
+			}
+
+			//return dir path
+			return $this->upload_dir . $dir;
+		}
+
+
+		/**
+		 * Download file by parts
+		 *
+		 * @param string $filename
+		 * @param bool $retbytes
+		 *
+		 * @return bool|int
+		 */
+		function readfile_chunked( $filename, $retbytes = true ) {
+			$chunksize = 1 *( 1024 * 1024 ); // how many bytes per chunk
+			$cnt = 0;
+			$handle = fopen( $filename, 'rb' );
+			if ( $handle === false ) {
+				return false;
+			}
+
+			while ( ! feof( $handle ) ) {
+				$buffer = fread( $handle, $chunksize );
+				echo $buffer;
+				if ( $retbytes ) {
+					$cnt += strlen( $buffer );
+				}
+			}
+			$status = fclose( $handle );
+			if ( $retbytes && $status ) {
+				return $cnt; // return num. bytes delivered like readfile() does.
+			}
+			return $status;
+
+		}
+
+
+		/**
+		 *
+		 */
+		function download_file() {
+			if ( ! is_user_logged_in() ) {
+				return;
+			}
+
+			@ignore_user_abort( true );
+			@set_time_limit( 0 );
+
+			$user_id = get_current_user_id();
+
+			$gdpr_folder = $this->get_upload_dir( 'ultimatemember/gdpr' );
+			$filename = md5( $user_id .  $_GET['conversation_id'] . 'gdpr_data_salt' );
+			$filepath = $gdpr_folder . DIRECTORY_SEPARATOR . $filename . '.txt';
+
+			$fsize = filesize( $filepath );
+
+			$content_type = 'text/plain';
+			$filename = "conversation-data-{$_GET['conversation_id']}.txt";
+
+			header( "Pragma: no-cache" );
+			header( "Expires: 0" );
+			header( "Cache-Control: must-revalidate, post-check=0, pre-check=0" );
+			header( "Robots: none" );
+			header( "Content-Description: File Transfer" );
+			header( "Content-Transfer-Encoding: binary" );
+			header( "Content-type: {$content_type}" );
+			header( "Content-Disposition: attachment; filename=\"{$filename}\"" );
+			header( "Content-length: $fsize" );
+
+			$levels = ob_get_level();
+			for ( $i = 0; $i < $levels; $i++ ) {
+				@ob_end_clean();
+			}
+
+			$this->readfile_chunked( $filepath );
+			exit;
+		}
+
+
+		/**
+		 *
+		 */
+		function ajax_upload_process() {
+			if ( ! ini_get( 'safe_mode' ) ) {
+				@set_time_limit(0);
+			}
+
+			if ( is_multisite() && ! is_upload_space_available() ) {
+				exit( json_encode( array( 'status' => false, 'message' => __( 'Sorry, you have used all of your storage quota.', 'ultimate-member' ) ) ) );
+			}
+
+			$targetDir = $this->get_upload_dir( 'ultimatemember/files/', 'deny' );
+
+			if( isset( $_REQUEST["name"] ) ) {
+				$new_name = $_REQUEST["name"];
+			} else {
+				$new_name = uniqid("file_");
+			}
+			$target_path = $targetDir . $new_name;
+
+			// Chunking might be enabled
+			$chunk = isset( $_REQUEST["chunk"] ) ? intval( $_REQUEST["chunk"] ) : 0;
+			$chunks = isset( $_REQUEST["chunks"] ) ? intval( $_REQUEST["chunks"] ) : 0;
+
+			if ( ! is_dir( $targetDir ) || ! $dir = opendir( $targetDir ) ) {
+				exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open directory', 'ultimate-member' ) ) ) );
+			}
+
+			while ( ( $file = readdir( $dir ) ) !== false ) {
+				$tmpfilePath = $targetDir . DIRECTORY_SEPARATOR . $file;
+				if ( $tmpfilePath == "{$target_path}.part" ) {
+					continue;
+				}
+
+				if ( preg_match( '/\.part$/', $file ) && ( filemtime( $tmpfilePath ) < time() - 360000 ) ) {
+					@unlink( $tmpfilePath );
+				}
+			}
+			closedir( $dir );
+
+			// Open temp file
+			if ( ! $out = @fopen( "{$target_path}.part", $chunks ? "ab" : "wb" ) ) {
+				exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open output stream', 'ultimate-member' ) ) ) );
+			}
+
+			if ( ! empty( $_FILES ) ) {
+				if ( $_FILES["file"]["error"] || ! is_uploaded_file( $_FILES["file"]["tmp_name"] ) ) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to move uploaded file', 'ultimate-member' ) ) ) );
+				}
+
+				// Read binary input stream and append it to temp file
+				if ( ! $in = @fopen( $_FILES["file"]["tmp_name"], "rb" ) ) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
+				}
+			} else {
+				if ( ! $in = @fopen( "php://input", "rb" ) ) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
+				}
+			}
+
+			while ( $buff = fread( $in, 4096 ) ) {
+				fwrite( $out, $buff );
+			}
+
+			@fclose( $out );
+			@fclose( $in );
+
+			// Check if file has been uploaded
+			if ( ! $chunks || $chunk == $chunks - 1 ) {
+				// Strip the temp .part suffix off
+				$random_digit = rand( 0000, 9999 );
+
+				$new_target_path = $this->get_upload_dir( 'ultimatemember/files/' . $user_id . $random_digit . $new_name );
+
+				if ( ! rename( "{$target_path}.part", $new_target_path ) ) {
+					exit( json_encode( array( 'status' => false, 'message' => __( 'Failed to open input stream', 'ultimate-member' ) ) ) );
+				}
+
+				//insert file data to usermeta
+				exit( json_encode( array( 'status' => true, 'message' => 'full_success', 'id' => $file_id ) ) );
+			} else {
+				exit( json_encode( array( 'status' => true, 'message' => 'part_success' ) ) );
+			}
+		}
+
+
+		/**
 		 * Remove file by AJAX
 		 */
 		function ajax_remove_file() {
+			UM()->check_frontend_ajax_nonce();
+
 			/**
 			 * @var $src
 			 */
 			extract( $_REQUEST );
 			$this->delete_file( $src );
+
+			wp_send_json_success();
 		}
 
 
@@ -82,20 +289,32 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 		 * Resize image AJAX handler
 		 */
 		function ajax_resize_image() {
-			$output = 0;
+			UM()->check_frontend_ajax_nonce();
 
+			/**
+			 * @var $key
+			 * @var $src
+			 * @var $coord
+			 * @var $user_id
+			 */
 			extract( $_REQUEST );
 
-			if ( !isset($src) || !isset($coord) ) die( __('Invalid parameters') );
+			if ( ! isset( $src ) || ! isset( $coord ) ) {
+				wp_send_json_error( esc_js( __( 'Invalid parameters', 'ultimate-member' ) ) );
+			}
 
-			$coord_n = substr_count($coord, ",");
-			if ( $coord_n != 3 ) die( __('Invalid coordinates') );
+			$coord_n = substr_count( $coord, "," );
+			if ( $coord_n != 3 ) {
+				wp_send_json_error( esc_js( __( 'Invalid coordinates', 'ultimate-member' ) ) );
+			}
 
 			$um_is_temp_image = um_is_temp_image( $src );
-			if ( !$um_is_temp_image ) die( __('Invalid Image file') );
+			if ( ! $um_is_temp_image ) {
+				wp_send_json_error( esc_js( __( 'Invalid Image file', 'ultimate-member' ) ) );
+			}
 
-			$crop = explode(',', $coord );
-			$crop = array_map('intval', $crop);
+			$crop = explode( ',', $coord );
+			$crop = array_map( 'intval', $crop );
 
 			$uri = UM()->files()->resize_image( $um_is_temp_image, $crop );
 
@@ -108,7 +327,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 
 			delete_option( "um_cache_userdata_{$user_id}" );
 
-			if(is_array($output)){ print_r($output); }else{ echo $output; } die;
+			wp_send_json_success( $output );
 		}
 
 
@@ -376,7 +595,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 		 *
 		 * @return array
 		 */
-		function create_and_copy_image($source, $destination, $quality = 100) {
+		function create_and_copy_image( $source, $destination, $quality = 100 ) {
 
 			$info = @getimagesize($source);
 
@@ -1139,7 +1358,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			$computed_size = round(pow(1024, $base - floor($base)), $precision);
 			$unit = $suffixes[ floor($base) ];
 
-			return   $computed_size.' '.$unit;
+			return $computed_size.' '.$unit;
 
 		}
 
@@ -1222,7 +1441,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 		/**
 		 *
 		 */
-		function ajax_file_upload(){
+		function ajax_file_upload() {
 			$ret['error'] = null;
 			$ret = array();
 

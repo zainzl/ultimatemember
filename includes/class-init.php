@@ -492,6 +492,7 @@ if ( ! class_exists( 'UM' ) ) {
 			if ( $this->is_request( 'ajax' ) ) {
 				$this->admin();
 				$this->ajax_init();
+				$this->admin_ajax_hooks();
 				$this->metabox();
 				$this->admin_upgrade()->init_packages_ajax_handlers();
 				$this->admin_gdpr();
@@ -597,6 +598,17 @@ if ( ! class_exists( 'UM' ) ) {
 		 */
 		function ajax_init() {
 			new um\core\AJAX_Common();
+		}
+
+
+		/**
+		 * @since 2.0.14
+		 */
+		function admin_ajax_hooks() {
+			if ( empty( $this->classes['admin_ajax_hooks'] ) ) {
+				$this->classes['admin_ajax_hooks'] = new um\admin\core\Admin_Ajax_Hooks();
+			}
+			return $this->classes['admin_ajax_hooks'];
 		}
 
 

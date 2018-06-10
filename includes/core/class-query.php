@@ -39,6 +39,8 @@ if ( ! class_exists( 'um\core\Query' ) ) {
 		 * Ajax pagination for posts
 		 */
 		function ajax_paginate() {
+			UM()->check_frontend_ajax_nonce();
+
 			/**
 			 * @var $hook
 			 * @var $args
@@ -68,10 +70,9 @@ if ( ! class_exists( 'um\core\Query' ) ) {
 			 */
 			do_action( "um_ajax_load_posts__{$hook}", $args );
 
-			$output = ob_get_contents();
-			ob_end_clean();
+			$output = ob_get_clean();
 
-			die( $output );
+			wp_send_json_success( $output );
 		}
 
 

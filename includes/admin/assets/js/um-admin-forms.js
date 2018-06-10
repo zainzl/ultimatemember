@@ -3,7 +3,7 @@ jQuery(document).ready( function() {
     /**
      * Multi-selects field
      */
-    jQuery( 'body' ).on( 'click', '.um-select-delete', function() {
+    jQuery( document ).on( 'click', '.um-select-delete', function() {
         jQuery( this ).parents( 'li.um-multi-selects-option-line' ).remove();
     });
 
@@ -24,7 +24,7 @@ jQuery(document).ready( function() {
 
         list.append(
             '<li class="' + classes + '"><span class="um-field-wrapper">' + selector_html +
-            '</span><span class="um-field-control"><a href="javascript:void(0);" class="um-select-delete">' + php_data.texts.remove + '</a></span></li>'
+            '</span><span class="um-field-control"><a href="javascript:void(0);" class="um-select-delete">' + um_admin_forms_data.texts.remove + '</a></span></li>'
         );
 
         list.find('li:last .um-hidden-multi-selects').attr('name', jQuery(this).data('name') ).
@@ -36,7 +36,7 @@ jQuery(document).ready( function() {
     /**
      * Multi-text field
      */
-    jQuery( 'body' ).on( 'click', '.um-text-delete', function() {
+    jQuery( document ).on( 'click', '.um-text-delete', function() {
         jQuery(this).parents('li.um-multi-text-option-line').remove();
     });
 
@@ -57,7 +57,7 @@ jQuery(document).ready( function() {
 
         list.append(
             '<li class="' + classes + '"><span class="um-field-wrapper">' + text_html +
-            '</span><span class="um-field-control"><a href="javascript:void(0);" class="um-text-delete">' + php_data.texts.remove + '</a></span></li>'
+            '</span><span class="um-field-control"><a href="javascript:void(0);" class="um-text-delete">' + um_admin_forms_data.texts.remove + '</a></span></li>'
         );
 
         list.find('li:last .um-hidden-multi-text').attr('name', jQuery(this).data('name') ).
@@ -105,7 +105,7 @@ jQuery(document).ready( function() {
             frame = wp.media({
                 title: button.data('upload_frame'),
                 button: {
-                    text: php_data.texts.select
+                    text: um_admin_forms_data.texts.select
                 },
                 multiple: false  // Set to true to allow multiple files to be selected
             });
@@ -198,7 +198,6 @@ jQuery(document).ready( function() {
         var value = conditional[2];
 
         var prefix = form_line.data( 'prefix' );
-        //var prefix = form_line.parents( '.um-form-table' ).data( 'prefix' );
 
         var condition_field = jQuery( '#' + prefix + '_' + conditional[0] );
         var parent_condition = true;
@@ -207,11 +206,11 @@ jQuery(document).ready( function() {
         }
 
         var own_condition = false;
+        var tagName = condition_field.prop("tagName").toLowerCase();
+        var input_type = condition_field.attr('type');
         if ( condition == '=' ) {
-            var tagName = condition_field.prop("tagName").toLowerCase();
 
             if ( tagName == 'input' ) {
-                var input_type = condition_field.attr('type');
                 if ( input_type == 'checkbox' ) {
                     own_condition = ( value == '1' ) ? condition_field.is(':checked') : ! condition_field.is(':checked');
                 } else {
@@ -221,10 +220,8 @@ jQuery(document).ready( function() {
                 own_condition = ( condition_field.val() == value );
             }
         } else if ( condition == '!=' ) {
-            var tagName = condition_field.prop("tagName").toLowerCase();
 
             if ( tagName == 'input' ) {
-                var input_type = condition_field.attr('type');
                 if ( input_type == 'checkbox' ) {
                     own_condition = ( value == '1' ) ? ! condition_field.is(':checked') : condition_field.is(':checked');
                 } else {
