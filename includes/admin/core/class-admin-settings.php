@@ -57,6 +57,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 			add_filter( 'um_settings_section_install_info__content', array( $this, 'settings_install_info_tab' ), 10, 2 );
 
 
+			add_filter( 'um_settings_structure', array( $this, 'multisite_options' ), 10 );
 			add_filter( 'um_settings_structure', array( $this, 'sorting_licenses_options' ), 9999, 1 );
 
 
@@ -1079,6 +1080,26 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 				),
 			) );
 
+		}
+
+		/**
+		 * Settings for multisite
+		 * @hook um_settings_structure
+		 * @param array $settings
+		 * @return array
+		 */
+		function multisite_options( $settings ) {
+
+			if( is_multisite() ){
+				$settings['email']['fields'][] = array(
+					'id'            => 'email_multisite_templates',
+					'type'          => 'checkbox',
+					'label'         => __( 'Use different templates?','ultimate-member' ),
+					'tooltip'       => __( 'If you plan use different templates for each blog, please make sure that this option is enabled.','ultimate-member'),
+				);
+			}
+
+			return $settings;
 		}
 
 

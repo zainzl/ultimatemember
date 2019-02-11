@@ -527,6 +527,7 @@ if ( ! class_exists( 'um\Config' ) ) {
 				'mail_from'                             => get_bloginfo('name'),
 				'mail_from_addr'                        => get_bloginfo('admin_email'),
 				'email_html'                            => 1,
+				'email_multisite_templates'             => 1,
 				'image_compression'                     => 60,
 				'image_max_width'                       => 1000,
 				'cover_min_width'                       => 1000,

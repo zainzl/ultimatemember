@@ -109,19 +109,21 @@ if ( ! class_exists( 'um\core\Mail' ) ) {
 			$blog_id = $this->get_blog_id();
 
 			//get template file from current blog ID folder
-			$template = locate_template( array(
-				trailingslashit( 'ultimate-member/email' . $blog_id ) . $template_name . '.php'
-			) );
+			if ( $blog_id && UM()->options()->get( 'email_multisite_templates' ) ) {
+				$template = locate_template( array(
+					trailingslashit( 'ultimate-member/email' . $blog_id ) . $template_name . '.php'
+				) );
+			}
 
 			//if there isn't template at theme folder for current blog ID get template file from theme folder
-			if ( is_multisite() && ! $template ) {
+			if ( empty( $template ) ) {
 				$template = locate_template( array(
 					trailingslashit( 'ultimate-member/email' ) . $template_name . '.php'
 				) );
 			}
 
 			//if there isn't template at theme folder get template file from plugin dir
-			if ( ! $template ) {
+			if ( empty( $template ) ) {
 				$path = ! empty( $this->path_by_slug[ $template_name ] ) ? $this->path_by_slug[ $template_name ] : um_path . 'templates/email';
 				$template = trailingslashit( $path ) . $template_name . '.php';
 			}
@@ -508,7 +510,11 @@ if ( ! class_exists( 'um\core\Mail' ) ) {
 					//save email template in blog ID folder if we use multisite
 					$blog_id = $this->get_blog_id();
 
-					$template_path = trailingslashit( get_stylesheet_directory() . '/ultimate-member/email' . $blog_id ). $template_name_file . '.php';
+					if ( $blog_id && UM()->options()->get( 'email_multisite_templates' ) ) {
+						$template_path = trailingslashit( get_stylesheet_directory() . '/ultimate-member/email' . $blog_id ). $template_name_file . '.php';
+					}else{
+						$template_path = trailingslashit( get_stylesheet_directory() . '/ultimate-member/email' ). $template_name_file . '.php';
+					}
 					break;
 				case 'plugin':
 					$path = ! empty( $this->path_by_slug[ $template_name ] ) ? $this->path_by_slug[ $template_name ] : um_path . 'templates/email';
