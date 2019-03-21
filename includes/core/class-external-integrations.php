@@ -152,7 +152,7 @@ if ( ! class_exists( 'um\core\External_Integrations' ) ) {
 				return $profile_url;
 
 			if ( function_exists( 'icl_get_current_language' ) && icl_get_current_language() != icl_get_default_language() ) {
-				if ( get_the_ID() > 0 && get_post_meta( get_the_ID(), '_um_wpml_user', true ) == 1 ) {
+				if ( get_the_ID() > 0 && $this->is_wpml_user() ) {
 					$profile_url = get_permalink( get_the_ID() );
 				}
 			}
@@ -223,7 +223,55 @@ if ( ! class_exists( 'um\core\External_Integrations' ) ) {
 
 			return false;
 		}
+		
+		
+		/**
+		 * Check if it is translation for Account page
+		 * @param int $page_id
+		 * @return bool
+		 */
+		public function is_wpml_account( $page_id = null ) {
+			$is_wpml_user = false;
 
+			if ( empty( $page_id ) ) {
+				$page_id = get_the_ID();
+			}
+
+			if ( get_post_meta( $page_id, '_um_wpml_account', true ) ) {
+				$is_wpml_user = true;
+			}
+			else {
+				$cr = get_post_meta( $page_id, 'um_content_restriction', true );
+				$is_wpml_user = $cr && is_array( $cr ) && !empty( $cr['_um_wpml_account'] );
+			}
+
+			return $is_wpml_user;
+		}
+		
+
+		/**
+		 * Check if it is translation for User Profile page
+		 * @param int $page_id
+		 * @return bool
+		 */
+		public function is_wpml_user( $page_id = null ) {
+			$is_wpml_user = false;
+
+			if ( empty( $page_id ) ) {
+				$page_id = get_the_ID();
+			}
+
+			if ( get_post_meta( $page_id, '_um_wpml_user', true ) ) {
+				$is_wpml_user = true;
+			}
+			else {
+				$cr = get_post_meta( $page_id, 'um_content_restriction', true );
+				$is_wpml_user = $cr && is_array( $cr ) && !empty( $cr['_um_wpml_user'] );
+			}
+
+			return $is_wpml_user;
+		}
+		
 
 		/**
 		 * Get a translated core page URL
@@ -286,11 +334,11 @@ if ( ! class_exists( 'um\core\External_Integrations' ) ) {
 			if ( function_exists( 'icl_get_current_language' ) && icl_get_current_language() != icl_get_default_language() ) {
 				$url = $this->get_url_for_language( UM()->config()->permalinks[ $slug ], icl_get_current_language() );
 
-				if ( get_post_meta( get_the_ID(), '_um_wpml_account', true ) == 1 ) {
-					$url = get_permalink( get_the_ID() );
+				if ( $this->is_wpml_account() ) {
+					$url = get_permalink();
 				}
-				if ( get_post_meta( get_the_ID(), '_um_wpml_user', true ) == 1 ) {
-					$url = $this->get_url_for_language( UM()->config()->permalinks[ $slug ], icl_get_current_language() );
+				if ( $this->is_wpml_user() ) {
+					$url = $this->get_url_for_language( UM()->config()->permalinks[$slug], icl_get_current_language() );
 				}
 			}
 
