@@ -582,12 +582,12 @@ if ( ! class_exists( 'um\core\Access' ) ) {
 					}
 				}
 			}
-			
+
 
 			// Check restriction rules for parent terms
 			if( !$restriction && !empty( $restricted_taxonomies ) ) {
 
-				$terms = wp_get_object_terms( $post->ID, array_keys( $restricted_taxonomies ), array( 'fields' => 'ids' ) );			
+				$terms = wp_get_object_terms( $post->ID, array_keys( $restricted_taxonomies ), array( 'fields' => 'ids' ) );
 				while( !$restriction && $terms ) {
 					foreach( $terms as $term ) {
 						if( is_object( $term ) ) {
@@ -605,6 +605,9 @@ if ( ! class_exists( 'um\core\Access' ) ) {
 					} else {
 						$parent_terms = array();
 						foreach( $terms as $term ) {
+							if( is_numeric( $term ) ) {
+								$term = get_term( $term );
+							}
 							if( $term->parent ) {
 								$parent_terms[] = $term->parent;
 							}
