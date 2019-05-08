@@ -108,6 +108,7 @@ function um_clean_user_basename( $value ) {
  * @return array
  */
 function um_replace_placeholders() {
+
 	$search = array(
 		'{display_name}',
 		'{first_name}',
@@ -115,17 +116,10 @@ function um_replace_placeholders() {
 		'{gender}',
 		'{username}',
 		'{email}',
-		'{password}',
-		'{login_url}',
-		'{login_referrer}',
 		'{site_name}',
-		'{site_url}',
-		'{admin_email}',
-		'{user_profile_link}',
 		'{user_account_link}',
-		'{submitted_registration}',
-		'{user_avatar_url}',
 	);
+
 
 	/**
 	 * UM hook
@@ -157,16 +151,8 @@ function um_replace_placeholders() {
 		um_user( 'gender' ),
 		um_user( 'user_login' ),
 		um_user( 'user_email' ),
-		um_user( '_um_cool_but_hard_to_guess_plain_pw' ),
-		um_get_core_page( 'login' ),
-		um_dynamic_login_page_redirect(),
 		UM()->options()->get( 'site_name' ),
-		get_bloginfo( 'url' ),
-		um_admin_email(),
-		um_user_profile_url(),
 		um_get_core_page( 'account' ),
-		um_user_submitted_registration(),
-		um_get_user_avatar_url(),
 	);
 
 	/**
@@ -741,7 +727,7 @@ function um_user_submitted_registration( $style = false ) {
 				}
 
 				if ( ! empty( $filedata['original_name'] ) ) {
-					$v = '<a href="' . esc_attr( $baseurl . um_user( 'ID' ) . '/' . $file ) . '">' . $filedata['original_name'] . '</a>';
+					$v = '<a href="' . esc_attr( $baseurl . um_user( 'ID' ) . '/' . $file ) . '">' . esc_html( $filedata['original_name'] ) . '</a>';
 				} else {
 					$v = $baseurl . um_user( 'ID' ) . '/' . $file;
 				}
@@ -2699,4 +2685,28 @@ function is_ultimatemember() {
  */
 function um_maybe_unset_time_limit() {
 	@set_time_limit( 0 );
+}
+
+
+/*
+ * Check if current user is owner of requested profile
+ * @Returns Boolean
+*/
+if ( ! function_exists( 'um_is_profile_owner' ) ) {
+	/**
+	 * @param $user_id
+	 *
+	 * @return bool
+	 */
+	function um_is_profile_owner( $user_id = false ) {
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+
+		if ( empty( $user_id ) ) {
+			$user_id = get_current_user_id();
+		}
+
+		return ( $user_id == um_profile_id() );
+	}
 }

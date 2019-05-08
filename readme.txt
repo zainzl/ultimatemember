@@ -4,8 +4,8 @@ Plugin URI: https://ultimatemember.com/
 Contributors: ultimatemember, champsupertramp, nsinelnikov
 Donate link: 
 Tags: community, member, membership, user-profile, user-registration
-Requires at least: 4.7
-Tested up to: 5.1
+Requires at least: 4.9
+Tested up to: 5.2
 Stable tag: 2.0.44
 License: GNU Version 2 or Any Later Version
 License URI: http://www.gnu.org/licenses/gpl-3.0.txt
@@ -133,11 +133,18 @@ The plugin works with popular caching plugins by automatically excluding Ultimat
 
 = Important: UM2.0+ is a significant update to the code base from 1.3.88. Please make sure you take a full-site backup with restore point before updating the plugin =
 
-= 2.0.44: April 23, 2019 =
+= 2.0.45: May 08, 2019 =
+
+* Bugfixes:
+  - Security vulnerabilities on Profile/Registration submit
+
+= 2.0.44: May 08, 2019 =
 
 * Enhancements:
   - Added automatically template saver when you upgrade your theme
   - Added default value for Date and Time user profile fields
+  - Updated Scroll library
+  - Added REST API v2 class with new query vars. There is an ability to select v1 or v2 for use. For old users v1 is default, for new users v2
 
 * Bugfixes:
   - Added nocache headers to reset password form
@@ -151,6 +158,10 @@ The plugin works with popular caching plugins by automatically excluding Ultimat
   - Restriction options for Terms and access on front-end
   - Plugin/Theme upgrader
   - Remove duplicate data 'user_login' from metadata
+  - Replace placeholders duplicates
+  - Password Reset link regeneration
+  - Fixed issues with scroll on mobile devices
+  - Fixed multisite activation
 
 * Deprecated:
   - "Is Account page?" and "Is User page?" options for WPML integration ( because WPML translations works properly )
