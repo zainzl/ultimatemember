@@ -535,6 +535,7 @@ if ( ! class_exists( 'um\core\Access' ) ) {
 		 */
 		function get_post_privacy_settings( $post ) {
 			$exclude = false;
+			$restriction = false;
 
 			//if logged in administrator all pages are visible
 			if ( current_user_can( 'administrator' ) ) {
@@ -548,90 +549,73 @@ if ( ! class_exists( 'um\core\Access' ) ) {
 				     um_is_core_post( $post, 'password-reset' ) || ( is_user_logged_in() && um_is_core_post( $post, 'user' ) ) )
 					$exclude = true;
 			}
+			
+			$restricted_posts = ( array ) UM()->options()->get( 'restricted_access_post_metabox' );
+			$restricted_taxonomies = ( array ) UM()->options()->get( 'restricted_access_taxonomy_metabox' );
 
 			$exclude = apply_filters( 'um_exclude_posts_from_privacy', $exclude, $post );
-			if ( $exclude ) {
+			if ( $exclude || empty($restricted_posts[$post->post_type]) ) {
 				return false;
 			}
+			
 
-			$restricted_posts = UM()->options()->get( 'restricted_access_post_metabox' );
+			// Check restriction rules for current post
+			$post_restriction = get_post_meta( $post->ID, 'um_content_restriction', true );
+			if( $post_restriction && !empty( $post_restriction[ '_um_custom_access_settings' ] ) ) {
+				$restriction = $post_restriction;
+			}
 
-			if ( ! empty( $post->post_type ) && ! empty( $restricted_posts[ $post->post_type ] ) ) {
-				$restriction = get_post_meta( $post->ID, 'um_content_restriction', true );
 
-				if ( ! empty( $restriction['_um_custom_access_settings'] ) ) {
-					if ( ! isset( $restriction['_um_accessible'] ) ) {
-						$restricted_taxonomies = UM()->options()->get( 'restricted_access_taxonomy_metabox' );
+			// Check restriction rules for parent page
+			if( !$restriction ) {
 
-						//get all taxonomies for current post type
-						$taxonomies = get_object_taxonomies( $post );
+				$parent_post_id = $post->post_parent;
+				while( !$restriction && $parent_post_id ) {
+					$parent_post = get_post( $parent_post_id );
+					$parent_restriction = UM()->access()->get_post_privacy_settings( $parent_post );
 
-						//get all post terms
-						$terms = array();
-						if ( ! empty( $taxonomies ) ) {
-							foreach ( $taxonomies as $taxonomy ) {
-								if ( empty( $restricted_taxonomies[ $taxonomy ] ) ) {
-									continue;
-								}
+					if( $parent_restriction && !empty( $parent_restriction[ '_um_custom_access_settings' ] ) ) {
+						$restriction = $parent_restriction;
+						break;
+					} else {
+						$parent_post_id = $parent_post->post_parent;
+					}
+				}
+			}
+			
 
-								$terms = array_merge( $terms, wp_get_post_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) ) );
+			// Check restriction rules for parent terms
+			if( !$restriction && !empty( $restricted_taxonomies ) ) {
+
+				$terms = wp_get_object_terms( $post->ID, array_keys( $restricted_taxonomies ), array( 'fields' => 'ids' ) );			
+				while( !$restriction && $terms ) {
+					foreach( $terms as $term ) {
+						if( is_object( $term ) ) {
+							$term = $term->term_id;
+						}
+						$term_restriction = get_term_meta( $term, 'um_content_restriction', true );
+						if( $term_restriction && !empty( $term_restriction[ '_um_custom_access_settings' ] ) ) {
+							$restriction = $term_restriction;
+							break;
+						}
+					}
+
+					if( $restriction ) {
+						break;
+					} else {
+						$parent_terms = array();
+						foreach( $terms as $term ) {
+							if( $term->parent ) {
+								$parent_terms[] = $term->parent;
 							}
 						}
-
-						//get restriction options for first term with privacy settigns
-						foreach ( $terms as $term_id ) {
-							$restriction = get_term_meta( $term_id, 'um_content_restriction', true );
-
-							if ( ! empty( $restriction['_um_custom_access_settings'] ) ) {
-								if ( ! isset( $restriction['_um_accessible'] ) ) {
-									continue;
-								} else {
-									return $restriction;
-								}
-							}
-						}
-
-						return false;
-					} else {
-						return $restriction;
-					}
-				}
-			}
-
-			//post hasn't privacy settings....check all terms of this post
-			$restricted_taxonomies = UM()->options()->get( 'restricted_access_taxonomy_metabox' );
-
-			//get all taxonomies for current post type
-			$taxonomies = get_object_taxonomies( $post );
-
-			//get all post terms
-			$terms = array();
-			if ( ! empty( $taxonomies ) ) {
-				foreach ( $taxonomies as $taxonomy ) {
-					if ( empty( $restricted_taxonomies[ $taxonomy ] ) ) {
-						continue;
-					}
-
-					$terms = array_merge( $terms, wp_get_post_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) ) );
-				}
-			}
-
-			//get restriction options for first term with privacy settigns
-			foreach ( $terms as $term_id ) {
-				$restriction = get_term_meta( $term_id, 'um_content_restriction', true );
-
-				if ( ! empty( $restriction['_um_custom_access_settings'] ) ) {
-					if ( ! isset( $restriction['_um_accessible'] ) ) {
-						continue;
-					} else {
-						return $restriction;
+						$terms = array_unique( $parent_terms );
 					}
 				}
 			}
 
 
-			//post is public
-			return false;
+			return apply_filters( 'post_privacy_settings', $restriction, $post );
 		}
 
 
