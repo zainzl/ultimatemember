@@ -228,17 +228,55 @@ function um_user_edit_profile( $args ) {
 				continue;
 			}
 
+			//the same code in class-validation.php validate_fields_values for registration form
+			//rating field validation
+			if ( $array['type'] == 'rating' && isset( $args['submitted'][ $key ] ) ) {
+				if ( ! is_numeric( $args['submitted'][ $key ] ) ) {
+					continue;
+				} else {
+					if ( $array['number'] == 5 ) {
+						if ( ! in_array( $args['submitted'][ $key ], range( 1, 5 ) ) ) {
+							continue;
+						}
+					} elseif ( $array['number'] == 10 ) {
+						if ( ! in_array( $args['submitted'][ $key ], range( 1, 10 ) ) ) {
+							continue;
+						}
+					}
+				}
+			}
+
+			//validation of correct values from options in wp-admin
+			$stripslashes = stripslashes( $args['submitted'][ $key ] );
+			if ( in_array( $array['type'], array( 'select' ) ) &&
+			     ! empty( $array['options'] ) && ! empty( $stripslashes ) &&
+			     ! in_array( $stripslashes, array_map( 'trim', $array['options'] ) ) ) {
+				continue;
+			}
+
+			//validation of correct values from options in wp-admin
+			//the user cannot set invalid value in the hidden input at the page
+			if ( in_array( $array['type'], array( 'multiselect', 'checkbox', 'radio' ) ) &&
+			     ! empty( $args['submitted'][ $key ] ) && ! empty( $array['options'] ) ) {
+				$args['submitted'][ $key ] = array_map( 'stripslashes', array_map( 'trim', $args['submitted'][ $key ] ) );
+				$args['submitted'][ $key ] = array_intersect( $args['submitted'][ $key ], array_map( 'trim', $array['options'] ) );
+			}
+
 			if ( $array['type'] == 'multiselect' || $array['type'] == 'checkbox' && ! isset( $args['submitted'][ $key ] ) ) {
 				delete_user_meta( um_user( 'ID' ), $key );
 			}
 
 			if ( isset( $args['submitted'][ $key ] ) ) {
 
-				if ( isset( $array['type'] ) && in_array( $array['type'], array( 'image', 'file' ) ) &&
-				     ( /*um_is_file_owner( UM()->uploader()->get_upload_base_url() . um_user( 'ID' ) . '/' . $args['submitted'][ $key ], um_user( 'ID' ) ) ||*/
-					     um_is_temp_file( $args['submitted'][ $key ] ) || $args['submitted'][ $key ] == 'empty_file' ) ) {
+				if ( isset( $array['type'] ) && in_array( $array['type'], array( 'image', 'file' ) ) ) {
 
-					$files[ $key ] = $args['submitted'][ $key ];
+					if ( /*um_is_file_owner( UM()->uploader()->get_upload_base_url() . um_user( 'ID' ) . '/' . $args['submitted'][ $key ], um_user( 'ID' ) ) ||*/ um_is_temp_file( $args['submitted'][ $key ] ) || $args['submitted'][ $key ] == 'empty_file' ) {
+						$files[ $key ] = $args['submitted'][ $key ];
+					} elseif( um_is_file_owner( UM()->uploader()->get_upload_base_url() . um_user( 'ID' ) . '/' . $args['submitted'][ $key ], um_user( 'ID' ) ) ) {
+						/*$files[ $key ] = 'empty_file';*/
+					} else {
+						$files[ $key ] = 'empty_file';
+					}
 
 				} else {
 					if ( $array['type'] == 'password' ) {
@@ -428,6 +466,9 @@ function um_user_edit_profile( $args ) {
 add_action( 'um_user_edit_profile', 'um_user_edit_profile', 10 );
 
 
+add_filter( 'um_user_pre_updating_files_array', array( UM()->validation(), 'validate_files' ), 10, 1 );
+add_filter( 'um_before_save_filter_submitted', array( UM()->validation(), 'validate_fields_values' ), 10, 2 );
+
 /**
  * Leave roles for User, which are not in the list of update profile (are default WP or 3rd plugins roles)
  *
@@ -511,7 +552,7 @@ add_action( 'wp_head', 'um_profile_dynamic_meta_desc', 9999999 );
  * @param $args
  */
 function um_profile_header_cover_area( $args ) {
-	if ($args['cover_enabled'] == 1) {
+	if ( $args['cover_enabled'] == 1 ) {
 
 		$default_cover = UM()->options()->get( 'default_cover' );
 
@@ -526,7 +567,7 @@ function um_profile_header_cover_area( $args ) {
 
 		?>
 
-		<div class="um-cover <?php if (um_profile( 'cover_photo' ) || ( $default_cover && $default_cover['url'] )) echo 'has-cover'; ?>"
+		<div class="um-cover <?php if ( um_user( 'cover_photo' ) || ( $default_cover && $default_cover['url'] ) ) echo 'has-cover'; ?>"
 		     data-user_id="<?php echo um_profile_id(); ?>" data-ratio="<?php echo $args['cover_ratio']; ?>">
 
 			<?php
@@ -552,29 +593,44 @@ function um_profile_header_cover_area( $args ) {
 			do_action( 'um_cover_area_content', um_profile_id() );
 			if ( UM()->fields()->editing ) {
 
-				$hide_remove = um_profile( 'cover_photo' ) ? false : ' style="display:none;"';
+				$hide_remove = um_user( 'cover_photo' ) ? false : ' style="display:none;"';
+
+				$text = ! um_user( 'cover_photo' ) ? __( 'Upload a cover photo', 'ultimate-member' ) : __( 'Change cover photo', 'ultimate-member' ) ;
 
 				$items = array(
-					'<a href="#" class="um-manual-trigger" data-parent=".um-cover" data-child=".um-btn-auto-width">' . __( 'Change cover photo', 'ultimate-member' ) . '</a>',
-					'<a href="#" class="um-reset-cover-photo" data-user_id="' . um_profile_id() . '" ' . $hide_remove . '>' . __( 'Remove', 'ultimate-member' ) . '</a>',
-					'<a href="#" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
+					'<a href="javascript:void(0);" class="um-manual-trigger" data-parent=".um-cover" data-child=".um-btn-auto-width">' . $text . '</a>',
+					'<a href="javascript:void(0);" class="um-reset-cover-photo" data-user_id="' . um_profile_id() . '" ' . $hide_remove . '>' . __( 'Remove', 'ultimate-member' ) . '</a>',
+					'<a href="javascript:void(0);" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
 				);
 
+				$items = apply_filters( 'um_cover_area_content_dropdown_items', $items, um_profile_id() );
+
 				UM()->profile()->new_ui( 'bc', 'div.um-cover', 'click', $items );
+			} else {
+
+				if ( ! isset( UM()->user()->cannot_edit ) && ! um_user( 'cover_photo' ) ) {
+
+					$items = array(
+						'<a href="javascript:void(0);" class="um-manual-trigger" data-parent=".um-cover" data-child=".um-btn-auto-width">' . __( 'Upload a cover photo', 'ultimate-member' ) . '</a>',
+						'<a href="javascript:void(0);" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
+					);
+
+					$items = apply_filters( 'um_cover_area_content_dropdown_items', $items, um_profile_id() );
+
+					UM()->profile()->new_ui( 'bc', 'div.um-cover', 'click', $items );
+
+				}
+
 			}
 
-			UM()->fields()->add_hidden_field( 'cover_photo' );
-
-			echo $overlay; ?>
+			UM()->fields()->add_hidden_field( 'cover_photo' ); ?>
 
 			<div class="um-cover-e" data-ratio="<?php echo $args['cover_ratio']; ?>">
 
-				<?php if (um_profile( 'cover_photo' )) { ?>
+				<?php if ( um_user( 'cover_photo' ) ) {
 
-					<?php
-
-					if (UM()->mobile()->isMobile()) {
-						if (UM()->mobile()->isTablet()) {
+					if ( UM()->mobile()->isMobile() ) {
+						if ( UM()->mobile()->isTablet() ) {
 							echo um_user( 'cover_photo', 1000 );
 						} else {
 							echo um_user( 'cover_photo', 300 );
@@ -583,9 +639,7 @@ function um_profile_header_cover_area( $args ) {
 						echo um_user( 'cover_photo', 1000 );
 					}
 
-					?>
-
-				<?php } else if ($default_cover && $default_cover['url']) {
+				} elseif ( $default_cover && $default_cover['url'] ) {
 
 					$default_cover = $default_cover['url'];
 
@@ -593,10 +647,9 @@ function um_profile_header_cover_area( $args ) {
 
 				} else {
 
-					if (!isset( UM()->user()->cannot_edit )) { ?>
+					if ( ! isset( UM()->user()->cannot_edit ) ) { ?>
 
-						<a href="#" class="um-cover-add um-manual-trigger" data-parent=".um-cover"
-						   data-child=".um-btn-auto-width"><span class="um-cover-add-i"><i
+						<a href="javascript:void(0);" class="um-cover-add"><span class="um-cover-add-i"><i
 									class="um-icon-plus um-tip-n"
 									title="<?php _e( 'Upload a cover photo', 'ultimate-member' ); ?>"></i></span></a>
 
@@ -605,6 +658,8 @@ function um_profile_header_cover_area( $args ) {
 				} ?>
 
 			</div>
+
+			<?php echo $overlay; ?>
 
 		</div>
 
@@ -688,15 +743,15 @@ function um_profile_header( $args ) {
 
 			<?php
 
-			if (!isset( UM()->user()->cannot_edit )) {
+			if ( ! isset( UM()->user()->cannot_edit ) ) {
 
 				UM()->fields()->add_hidden_field( 'profile_photo' );
 
-				if (!um_profile( 'profile_photo' )) { // has profile photo
+				if ( ! um_profile( 'profile_photo' ) ) { // has profile photo
 
 					$items = array(
-						'<a href="#" class="um-manual-trigger" data-parent=".um-profile-photo" data-child=".um-btn-auto-width">' . __( 'Upload photo', 'ultimate-member' ) . '</a>',
-						'<a href="#" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
+						'<a href="javascript:void(0);" class="um-manual-trigger" data-parent=".um-profile-photo" data-child=".um-btn-auto-width">' . __( 'Upload photo', 'ultimate-member' ) . '</a>',
+						'<a href="javascript:void(0);" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
 					);
 
 					/**
@@ -724,12 +779,12 @@ function um_profile_header( $args ) {
 
 					echo UM()->profile()->new_ui( 'bc', 'div.um-profile-photo', 'click', $items );
 
-				} else if (UM()->fields()->editing == true) {
+				} elseif ( UM()->fields()->editing == true ) {
 
 					$items = array(
-						'<a href="#" class="um-manual-trigger" data-parent=".um-profile-photo" data-child=".um-btn-auto-width">' . __( 'Change photo', 'ultimate-member' ) . '</a>',
-						'<a href="#" class="um-reset-profile-photo" data-user_id="' . um_profile_id() . '" data-default_src="' . um_get_default_avatar_uri() . '">' . __( 'Remove photo', 'ultimate-member' ) . '</a>',
-						'<a href="#" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
+						'<a href="javascript:void(0);" class="um-manual-trigger" data-parent=".um-profile-photo" data-child=".um-btn-auto-width">' . __( 'Change photo', 'ultimate-member' ) . '</a>',
+						'<a href="javascript:void(0);" class="um-reset-profile-photo" data-user_id="' . um_profile_id() . '" data-default_src="' . um_get_default_avatar_uri() . '">' . __( 'Remove photo', 'ultimate-member' ) . '</a>',
+						'<a href="javascript:void(0);" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
 					);
 
 					/**
@@ -1081,7 +1136,7 @@ function um_add_edit_icon( $args ) {
 			'editprofile' => '<a href="' . um_edit_profile_url() . '" class="real_url">' . __( 'Edit Profile', 'ultimate-member' ) . '</a>',
 			'myaccount'   => '<a href="' . um_get_core_page( 'account' ) . '" class="real_url">' . __( 'My Account', 'ultimate-member' ) . '</a>',
 			'logout'      => '<a href="' . um_get_core_page( 'logout' ) . '" class="real_url">' . __( 'Logout', 'ultimate-member' ) . '</a>',
-			'cancel'      => '<a href="#" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
+			'cancel'      => '<a href="javascript:void(0);" class="um-dropdown-hide">' . __( 'Cancel', 'ultimate-member' ) . '</a>',
 		);
 
 		if ( ! empty( UM()->user()->cannot_edit ) ) {

@@ -824,7 +824,7 @@ function um_filtered_value( $key, $data = false ) {
 	 * }
 	 * ?>
 	 */
-	$value = apply_filters( "um_profile_field_filter_hook__", $value, $data, $type );
+	$value = apply_filters( 'um_profile_field_filter_hook__', $value, $data, $type );
 
 	/**
 	 * UM hook
@@ -1697,10 +1697,9 @@ function um_fetch_user( $user_id ) {
  *
  * @param $key
  *
- * @return mixed|void
+ * @return bool|string
  */
 function um_profile( $key ) {
-
 	if ( ! empty( UM()->user()->profile[ $key ] ) ) {
 		/**
 		 * UM hook
