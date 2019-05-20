@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 			}
 		}
 	}
+	
+	$post_type_object = get_post_type_object( $object->post_type ); 
 
 	/**
 	 * UM hook
@@ -131,7 +133,21 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 			'value' 		=> ! empty( $data['_um_access_hide_from_queries'] ) ? $data['_um_access_hide_from_queries'] : '',
 			'conditional'	=> array( '_um_accessible', '!=', '0' )
 		)
-	), $data );
+	), $data, $object, $post_type_object );
+	
+	
+	// Hierarchical
+	if( $post_type_object->hierarchical ){
+		$fields[] = array(
+			'id'       		=> '_um_access_hierarchical',
+			'type'     		=> 'checkbox',
+			'label'    		=> __( 'Hierarchical', 'ultimate-member' ),
+			'tooltip' 	  => __( 'Use parent page settings for the child pages that doesn\'t have own restriction settings.', 'ultimate-member' ),
+			'value' 		  => empty( $data['_um_access_hierarchical'] ) ? 0 : $data['_um_access_hierarchical'],
+			'conditional'	=> array( '_um_custom_access_settings', '=', '1' )
+		);
+	}
+	
 
 	UM()->admin_forms( array(
 		'class'		=> 'um-restrict-content um-third-column',

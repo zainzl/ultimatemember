@@ -568,13 +568,15 @@ if ( ! class_exists( 'um\core\Access' ) ) {
 
 			// Check restriction rules for parent page
 			if( !$restriction ) {
-
+				
 				$parent_post_id = $post->post_parent;
-				while( !$restriction && $parent_post_id ) {
+				while( !$restriction && !empty( $parent_post_id ) ) {
 					$parent_post = get_post( $parent_post_id );
 					$parent_restriction = UM()->access()->get_post_privacy_settings( $parent_post );
 
-					if( $parent_restriction && !empty( $parent_restriction[ '_um_custom_access_settings' ] ) ) {
+					if( $parent_restriction && empty( $parent_restriction[ '_um_access_hierarchical' ] ) ) {
+						break;
+					} elseif( $parent_restriction && !empty( $parent_restriction[ '_um_custom_access_settings' ] ) ) {
 						$restriction = $parent_restriction;
 						break;
 					} else {
