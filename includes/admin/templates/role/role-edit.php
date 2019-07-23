@@ -49,13 +49,17 @@ $data = array();
 $option = array();
 global $wp_roles;
 
-if ( ! empty( $_GET['id'] ) ) {
-	$data = get_option( "um_role_{$_GET['id']}_meta" );
+$role_id = isset( $_GET['id'] ) ? sanitize_key( $_GET['id'] ) : NULL;
+$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : NULL;
+$msg = isset( $_GET['msg'] ) ? sanitize_key( $_GET['msg'] ) : NULL;
 
-	if ( empty( $data['_um_is_custom'] ) )
-		$data['name'] = $wp_roles->roles[ $_GET['id'] ]['name'];
+if ( $role_id ) {
+	$data = get_option( "um_role_{$role_id}_meta" );
+
+	if( empty( $data[ '_um_is_custom' ] ) ) {
+		$data[ 'name' ] = $wp_roles->roles[ $role_id ][ 'name' ];
+	}
 }
-
 
 if ( ! empty( $_POST['role'] ) ) {
 
@@ -63,7 +67,7 @@ if ( ! empty( $_POST['role'] ) ) {
 	$redirect = '';
 	$error = '';
 
-	if ( 'add' == $_GET['tab'] ) {
+	if ( 'add' == $tab ) {
 		if ( ! wp_verify_nonce( $_POST['um_nonce'], 'um-add-role' ) ) {
 			$error = __( 'Security Issue', 'ultimate-member' ) . '<br />';
 		}
@@ -77,7 +81,7 @@ if ( ! empty( $_POST['role'] ) ) {
 
 		$data = $_POST['role'];
 
-		if ( 'add' == $_GET['tab'] ) {
+		if ( 'add' == $tab ) {
 
 			$data['name'] = trim( esc_html( strip_tags( $data['name'] ) ) );
 
@@ -94,30 +98,29 @@ if ( ! empty( $_POST['role'] ) ) {
 			}
 
 			$redirect = add_query_arg( array( 'page'=>'um_roles', 'tab'=>'edit', 'id'=>$id, 'msg'=>'a' ), admin_url( 'admin.php' ) );
-		} elseif ( 'edit' == $_GET['tab'] && ! empty( $_GET['id'] ) ) {
-			$id = $_GET['id'];
+		} elseif ( 'edit' == $tab && ! empty( $role_id ) ) {
 
-			$pre_role_meta = get_option( "um_role_{$id}_meta", array() );
+			$pre_role_meta = get_option( "um_role_{$role_id}_meta", array() );
 			if ( isset( $pre_role_meta['name'] ) ) {
 				$data['name'] = $pre_role_meta['name'];
 			}
 
-			$redirect = add_query_arg( array( 'page' => 'um_roles', 'tab' => 'edit', 'id' => $id, 'msg'=> 'u' ), admin_url( 'admin.php' ) );
+			$redirect = add_query_arg( array( 'page' => 'um_roles', 'tab' => 'edit', 'id' => $role_id, 'msg'=> 'u' ), admin_url( 'admin.php' ) );
 		}
 
 
 		$all_roles = array_keys( get_editable_roles() );
-		if ( 'add' == $_GET['tab'] ) {
-			if ( in_array( 'um_' . $id, $all_roles ) || in_array( $id, $all_roles ) ) {
+		if ( 'add' == $tab ) {
+			if ( in_array( 'um_' . $role_id, $all_roles ) || in_array( $role_id, $all_roles ) ) {
 				$error .= __( 'Role already exists!', 'ultimate-member' ) . '<br />';
 			}
 		}
 
 		if ( '' == $error ) {
 
-			if ( 'add' == $_GET['tab'] ) {
+			if ( 'add' == $tab ) {
 				$roles = get_option( 'um_roles' );
-				$roles[] = $id;
+				$roles[] = $role_id;
 
 				update_option( 'um_roles', $roles );
 
@@ -130,7 +133,7 @@ if ( ! empty( $_POST['role'] ) ) {
 			$role_meta = $data;
 			unset( $role_meta['id'] );
 
-			update_option( "um_role_{$id}_meta", $role_meta );
+			update_option( "um_role_{$role_id}_meta", $role_meta );
 
 			UM()->user()->remove_cache_all_users();
 
@@ -150,14 +153,14 @@ $screen_id = $current_screen->id; ?>
 
 <div class="wrap">
 	<h2>
-		<?php echo ( 'add' == $_GET['tab'] ) ? __( 'Add New Role', 'ultimate-member' ) : __( 'Edit Role', 'ultimate-member' ) ?>
-		<?php if ( 'edit' == $_GET['tab'] ) { ?>
+		<?php echo ( 'add' == $tab ) ? __( 'Add New Role', 'ultimate-member' ) : __( 'Edit Role', 'ultimate-member' ) ?>
+		<?php if ( 'edit' == $tab ) { ?>
 			<a class="add-new-h2" href="<?php echo add_query_arg( array( 'page' => 'um_roles', 'tab' => 'add' ), admin_url( 'admin.php' ) ) ?>"><?php _e( 'Add New', 'ultimate-member' ) ?></a>
 		<?php } ?>
 	</h2>
 
-	<?php if ( ! empty( $_GET['msg'] ) ) {
-		switch( $_GET['msg'] ) {
+	<?php if ( ! empty( $msg ) ) {
+		switch( $msg ) {
 			case 'a':
 				echo '<div id="message" class="updated fade"><p>' . __( 'User Role <strong>Added</strong> Successfully.', 'ultimate-member' ) . '</p></div>';
 				break;
@@ -174,8 +177,8 @@ $screen_id = $current_screen->id; ?>
 	<?php } ?>
 
 	<form id="um_edit_role" action="" method="post">
-		<input type="hidden" name="role[id]" value="<?php echo isset( $_GET['id'] ) ? esc_attr( $_GET['id'] ) : '' ?>" />
-		<?php if ( 'add' == $_GET['tab'] ) { ?>
+		<input type="hidden" name="role[id]" value="<?php echo esc_attr( $role_id ); ?>" />
+		<?php if ( 'add' == $tab ) { ?>
 			<input type="hidden" name="role[_um_is_custom]" value="1" />
 			<input type="hidden" name="um_nonce" value="<?php echo wp_create_nonce( 'um-add-role' ) ?>" />
 		<?php } else { ?>
@@ -188,7 +191,7 @@ $screen_id = $current_screen->id; ?>
 				<div id="post-body-content">
 					<div id="titlediv">
 						<div id="titlewrap">
-							<?php if ( 'add' == $_GET['tab'] ) { ?>
+							<?php if ( 'add' == $tab ) { ?>
 								<label for="title" class="screen-reader-text"><?php _e( 'Title', 'ultimate-member' ) ?></label>
 								<input type="text" name="role[name]" placeholder="<?php _e( 'Enter Title Here', 'ultimate-member' ) ?>" id="title" value="<?php echo isset( $data['name'] ) ? $data['name'] : '' ?>" />
 							<?php } else { ?>

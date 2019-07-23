@@ -1234,8 +1234,8 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 		 * Settings page callback
 		 */
 		function settings_page() {
-			$current_tab = empty( $_GET['tab'] ) ? '' : urldecode( $_GET['tab'] );
-			$current_subtab = empty( $_GET['section'] ) ? '' : urldecode( $_GET['section'] );
+			$current_tab = empty( $_GET['tab'] ) ? '' : urldecode( sanitize_text_field( $_GET['tab'] ) );
+			$current_subtab = empty( $_GET['section'] ) ? '' : urldecode( sanitize_text_field( $_GET['section'] ) );
 
 			$settings_struct = $this->settings_structure[$current_tab];
 
@@ -1435,7 +1435,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 							$menu_tabs[$slug] = $tab['title'];
 					}
 
-					$current_tab = empty( $_GET['tab'] ) ? '' : urldecode( $_GET['tab'] );
+					$current_tab = empty( $_GET['tab'] ) ? '' : urldecode( sanitize_text_field( $_GET['tab'] ) );
 					foreach ( $menu_tabs as $name=>$label ) {
 						$active = ( $current_tab == $name ) ? 'nav-tab-active' : '';
 						$tabs .= '<a href="' . admin_url( 'admin.php?page=um_options' . ( empty( $name ) ? '' : '&tab=' . $name ) ) . '" class="nav-tab ' . $active . '">' .
@@ -1489,8 +1489,8 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 
 			$subtabs = '<div><ul class="subsubsub">';
 
-			$current_tab = empty( $_GET['tab'] ) ? '' : urldecode( $_GET['tab'] );
-			$current_subtab = empty( $_GET['section'] ) ? '' : urldecode( $_GET['section'] );
+			$current_tab = empty( $_GET['tab'] ) ? '' : urldecode( sanitize_text_field( $_GET['tab'] ) );
+			$current_subtab = empty( $_GET['section'] ) ? '' : urldecode( sanitize_text_field( $_GET['section'] ) );
 			foreach ( $menu_subtabs as $name => $label ) {
 				$active = ( $current_subtab == $name ) ? 'current' : '';
 				$subtabs .= '<a href="' . admin_url( 'admin.php?page=um_options' . ( empty( $current_tab ) ? '' : '&tab=' . $current_tab ) . ( empty( $name ) ? '' : '&section=' . $name ) ) . '" class="' . $active . '">'
@@ -1587,11 +1587,13 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 					'page' => 'um_options',
 				);
 
-				if ( ! empty( $_GET['tab'] ) )
-					$arg['tab'] = $_GET['tab'];
+				if( !empty( $_GET[ 'tab' ] ) ) {
+					$arg[ 'tab' ] = sanitize_key( $_GET[ 'tab' ] );
+				}
 
-				if ( ! empty( $_GET['section'] ) )
-					$arg['section'] = $_GET['section'];
+				if( !empty( $_GET[ 'section' ] ) ) {
+					$arg[ 'section' ] = sanitize_key( $_GET[ 'section' ] );
+				}
 
 				um_js_redirect( add_query_arg( $arg, admin_url( 'admin.php' ) ) );
 			}
@@ -1606,20 +1608,22 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 		 */
 		function remove_empty_values( $settings ) {
 			$tab = '';
-			if ( ! empty( $_GET['tab'] ) )
-				$tab = $_GET['tab'];
+			if( !empty( $_GET[ 'tab' ] ) ) {
+				$tab = sanitize_key( $_GET[ 'tab' ] );
+			}
 
 			$section = '';
-			if ( ! empty( $_GET['section'] ) )
-				$section = $_GET['section'];
+			if( !empty( $_GET[ 'section' ] ) ) {
+				$section = sanitize_key( $_GET[ 'section' ] );
+			}
 
-			if ( isset( $this->settings_structure[$tab]['sections'][$section]['fields'] ) )
-				$fields = $this->settings_structure[$tab]['sections'][$section]['fields'];
-			else
-				$fields = $this->settings_structure[$tab]['fields'];
+			if( isset( $this->settings_structure[ $tab ][ 'sections' ][ $section ][ 'fields' ] ) ) {
+				$fields = $this->settings_structure[ $tab ][ 'sections' ][ $section ][ 'fields' ];
+			} else $fields = $this->settings_structure[ $tab ][ 'fields' ];
 
-			if ( empty( $fields ) )
+			if( empty( $fields ) ) {
 				return $settings;
+			}
 
 
 			$filtered_settings = array();
@@ -1784,7 +1788,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 		 *
 		 */
 		function settings_before_email_tab() {
-			$email_key = empty( $_GET['email'] ) ? '' : urldecode( $_GET['email'] );
+			$email_key = empty( $_GET['email'] ) ? '' : urldecode( sanitize_text_field( $_GET['email'] ) );
 			$emails = UM()->config()->email_notifications;
 
 			if ( empty( $email_key ) || empty( $emails[ $email_key ] ) ) {
@@ -1799,7 +1803,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 		 * @return string
 		 */
 		function settings_email_tab( $section ) {
-			$email_key = empty( $_GET['email'] ) ? '' : urldecode( $_GET['email'] );
+			$email_key = empty( $_GET['email'] ) ? '' : urldecode( sanitize_text_field( $_GET['email'] ) );
 			$emails = UM()->config()->email_notifications;
 
 			if ( empty( $email_key ) || empty( $emails[ $email_key ] ) ) {

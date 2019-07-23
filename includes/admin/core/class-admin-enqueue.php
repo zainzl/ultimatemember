@@ -97,7 +97,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Enqueue' ) ) {
 		 *
 		 */
 		function enqueue_cpt_scripts() {
-			if ( ( isset( $_GET['post_type'] ) && 'um_form' == $_GET['post_type'] ) || ( isset( $_GET['post'] ) && 'um_form' == get_post_type( $_GET['post'] ) ) ) {
+			if ( ( isset( $_GET['post_type'] ) && 'um_form' == sanitize_key( $_GET['post_type'] ) ) || ( isset( $_GET['post'] ) && 'um_form' == get_post_type( sanitize_key( $_GET['post'] ) ) ) ) {
 				$this->um_cpt_form_screen = true;
 			}
 
@@ -302,7 +302,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Enqueue' ) ) {
 			$hide_footer = false;
 			global $pagenow, $post;
 			if ( ( 'post.php' == $pagenow || 'post-new.php' == $pagenow ) &&
-			     ( ( isset( $_GET['post_type'] ) && 'um_form' == $_GET['post_type'] ) ||
+			     ( ( isset( $_GET['post_type'] ) && 'um_form' == sanitize_key( $_GET['post_type'] ) ) ||
 			       ( isset( $post->post_type ) && 'um_form' == $post->post_type ) ) ) {
 				$hide_footer = true;
 			}

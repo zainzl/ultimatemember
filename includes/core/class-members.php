@@ -257,26 +257,27 @@ if ( ! class_exists( 'um\core\Members' ) ) {
 
 						<option></option>
 
-						<?php foreach ( $attrs['options'] as $k => $v ) {
+						<?php
+						foreach ( $attrs['options'] as $k => $v ) {
 
 							$v = stripslashes( $v );
 
 							$opt = $v;
 
-							if ( strstr( $filter, 'role_' ) )
+							if( strstr( $filter, 'role_' ) ) {
 								$opt = $k;
+							}
 
-							if ( isset( $attrs['custom'] ) )
+							if( isset( $attrs[ 'custom' ] ) ) {
 								$opt = $k;
+							}
+						?>
 
-
-							?>
-
-                            <option value="<?php echo $opt; ?>" <?php um_select_if_in_query_params( $filter, $opt ); ?> <?php selected( isset( $_GET[$filter] ) && $_GET[$filter] == $v ) ?>><?php echo __( $v, 'ultimate-member'); ?></option>
+								<option value="<?php echo $opt; ?>" <?php um_select_if_in_query_params( $filter, $opt ); ?> <?php selected( isset( $_GET[$filter] ) && sanitize_text_field( $_GET[$filter] ) == $v ) ?>><?php _e( $v, 'ultimate-member'); ?></option>
 
 						<?php } ?>
 
-                    </select>
+					</select>
 
 					<?php
 

@@ -264,7 +264,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Users' ) ) {
 
 			if ( is_admin() && $pagenow == 'users.php' && ! empty( $_GET['status'] ) ) {
 
-				$status = urldecode( $_GET['status'] );
+				$status = urldecode( sanitize_text_field( $_GET['status'] ) );
 
 				if ( $status == 'needs-verification' ) {
 					$query->query_where = str_replace('WHERE 1=1',

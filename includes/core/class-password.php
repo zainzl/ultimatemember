@@ -284,13 +284,14 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 				$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
 
 				if ( isset( $_GET['hash'] ) ) {
-					$userdata = get_userdata( wp_unslash( $_GET['user_id'] ) );
+					$hash = sanitize_text_field( $_GET['hash'] );
+					$userdata = get_userdata( sanitize_key( $_GET['user_id'] ) );
 					if ( ! $userdata || is_wp_error( $userdata ) ) {
 						wp_redirect( add_query_arg( array( 'act' => 'reset_password', 'error' => 'invalidkey' ), get_permalink() ) );
 						exit;
 					}
 					$rp_login = $userdata->user_login;
-					$rp_key = wp_unslash( $_GET['hash'] );
+					$rp_key = wp_unslash( $hash );
 
 					$user = check_password_reset_key( $rp_key, $rp_login );
 
@@ -298,7 +299,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 						$this->setcookie( $rp_cookie, false );
 						wp_redirect( add_query_arg( array( 'updated' => 'invalidkey' ), get_permalink() ) );
 					} else {
-						$value = sprintf( '%s:%s', $rp_login, wp_unslash( $_GET['hash'] ) );
+						$value = sprintf( '%s:%s', $rp_login, wp_unslash( $hash ) );
 						$this->setcookie( $rp_cookie, $value );
 						wp_safe_redirect( remove_query_arg( array( 'hash', 'user_id' ) ) );
 					}
