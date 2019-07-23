@@ -68,18 +68,18 @@ if ( ! empty( $_POST['role'] ) ) {
 	$error = '';
 
 	if ( 'add' == $tab ) {
-		if ( ! wp_verify_nonce( $_POST['um_nonce'], 'um-add-role' ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['um_nonce'] ), 'um-add-role' ) ) {
 			$error = __( 'Security Issue', 'ultimate-member' ) . '<br />';
 		}
 	} else {
-		if ( ! wp_verify_nonce( $_POST['um_nonce'], 'um-edit-role' ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['um_nonce'] ), 'um-edit-role' ) ) {
 			$error = __( 'Security Issue', 'ultimate-member' ) . '<br />';
 		}
 	}
 
 	if ( empty( $error ) ) {
 
-		$data = $_POST['role'];
+		$data = sanitize_key( $_POST['role'] );
 
 		if ( 'add' == $tab ) {
 

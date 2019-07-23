@@ -673,7 +673,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Notices' ) ) {
 			}
 
 			$hidden_notices = get_option( 'um_hidden_admin_notices', array() );
-			$hidden_notices[] = $_POST['key'];
+			$hidden_notices[] = sanitize_key( $_POST['key'] );
 
 			update_option( 'um_hidden_admin_notices', $hidden_notices );
 

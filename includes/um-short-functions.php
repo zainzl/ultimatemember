@@ -1253,7 +1253,7 @@ function um_get_metadefault( $id ) {
  * @return bool
  */
 function um_submitting_account_page() {
-	if (isset( $_POST['_um_account'] ) && $_POST['_um_account'] == 1 && is_user_logged_in())
+	if (isset( $_POST['_um_account'] ) && sanitize_key( $_POST['_um_account'] ) == 1 && is_user_logged_in())
 		return true;
 
 	return false;

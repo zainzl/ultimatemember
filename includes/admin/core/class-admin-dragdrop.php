@@ -64,10 +64,10 @@ if ( ! class_exists( 'um\admin\core\Admin_DragDrop' ) ) {
 
 					$row_array = array(
 						'type' => 'row',
-						'id' => $value,
-						'sub_rows' => $_POST[ '_um_rowsub_'.$row_id .'_rows' ],
-						'cols' => $_POST[ '_um_rowcols_'.$row_id .'_cols' ],
-						'origin' => $_POST[ '_um_roworigin_'.$row_id . '_val' ],
+						'id' => sanitize_key( $value ),
+						'sub_rows' => sanitize_key( $_POST[ '_um_rowsub_'.$row_id .'_rows' ] ),
+						'cols' => sanitize_key( $_POST[ '_um_rowcols_'.$row_id .'_cols' ] ),
+						'origin' => sanitize_key( $_POST[ '_um_roworigin_'.$row_id . '_val' ] ),
 					);
 
 					$row_args = $row_array;

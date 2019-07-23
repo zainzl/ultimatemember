@@ -302,7 +302,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Builder' ) ) {
 
 			ob_start();
 
-			$this->form_id = $_POST['form_id'];
+			$this->form_id = sanitize_key( $_POST['form_id'] );
 
 			$this->show_builder();
 
@@ -615,9 +615,9 @@ if ( ! class_exists( 'um\admin\core\Admin_Builder' ) ) {
 			$output['error'] = null;
 
 			$array = array(
-				'field_type' => $_POST['_type'],
-				'form_id' =>  $_POST['post_id'],
-				'args' => UM()->builtin()->get_core_field_attrs( $_POST['_type'] ),
+				'field_type' => sanitize_key( $_POST['_type'] ),
+				'form_id' =>  sanitize_key( $_POST['post_id'] ),
+				'args' => UM()->builtin()->get_core_field_attrs( sanitize_key( $_POST['_type'] ) ),
 				'post' => $_POST
 			);
 
@@ -1145,7 +1145,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Builder' ) ) {
 
 			$arr_options = array();
 
-			$um_callback_func = $_POST['um_option_callback'];
+			$um_callback_func = sanitize_key( $_POST['um_option_callback'] );
 			if ( empty( $um_callback_func ) ) {
 				$arr_options['status'] = 'empty';
 				$arr_options['function_name'] = $um_callback_func;

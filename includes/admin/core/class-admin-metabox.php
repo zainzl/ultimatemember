@@ -1074,7 +1074,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Metabox' ) ) {
 			if ( empty( $_POST['post_title'] ) )
 				$_POST['post_title'] = 'Directory #'.$post_id;
 
-			$wpdb->update( $wpdb->posts, array( 'post_title' => $_POST['post_title'] ), $where );
+			$wpdb->update( $wpdb->posts, array( 'post_title' => sanitize_title( $_POST['post_title'] ) ), $where );
 
 			// save
 			delete_post_meta( $post_id, '_um_roles' );
@@ -1134,7 +1134,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Metabox' ) ) {
 
 			$where = array( 'ID' => $post_id );
 			if ( empty( $_POST['post_title'] ) ) $_POST['post_title'] = 'Form #' . $post_id;
-			$wpdb->update( $wpdb->posts, array( 'post_title' => $_POST['post_title'] ), $where );
+			$wpdb->update( $wpdb->posts, array( 'post_title' => sanitize_title( $_POST['post_title'] ) ), $where );
 
 			// save
 			delete_post_meta( $post_id, '_um_profile_metafields' );

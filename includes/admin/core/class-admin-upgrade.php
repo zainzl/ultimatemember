@@ -357,7 +357,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Upgrade' ) ) {
 				exit('');
 			} else {
 				ob_start();
-				include_once $this->packages_dir . DIRECTORY_SEPARATOR . $_POST['pack'] . DIRECTORY_SEPARATOR . 'init.php';
+				include_once $this->packages_dir . DIRECTORY_SEPARATOR . sanitize_file_name( $_POST['pack'] ) . DIRECTORY_SEPARATOR . 'init.php';
 				ob_get_flush();
 				exit;
 			}

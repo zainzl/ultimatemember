@@ -309,13 +309,13 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			$ret['error'] = null;
 			$ret = array();
 
-			$id = $_POST['key'];
-			$timestamp = $_POST['timestamp'];
-			$nonce = $_POST['_wpnonce'];
-			$user_id = $_POST['user_id'];
+			$id = sanitize_key( $_POST['key'] );
+			$timestamp = sanitize_text_field( $_POST['timestamp'] );
+			$nonce = sanitize_text_field( $_POST['_wpnonce'] );
+			$user_id = sanitize_key( $_POST['user_id'] );
 
-			UM()->fields()->set_id = $_POST['set_id'];
-			UM()->fields()->set_mode = $_POST['set_mode'];
+			UM()->fields()->set_id = sanitize_key( $_POST['set_id'] );
+			UM()->fields()->set_mode = sanitize_key( $_POST['set_mode'] );
 
 			/**
 			 * UM hook
@@ -384,12 +384,12 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 				die( json_encode( $ret ) );
 			}*/
 
-			$nonce = $_POST['_wpnonce'];
-			$id = $_POST['key'];
-			$timestamp = $_POST['timestamp'];
+			$nonce = sanitize_text_field( $_POST['_wpnonce'] );
+			$id = sanitize_key( $_POST['key'] );
+			$timestamp = sanitize_text_field( $_POST['timestamp'] );
 
-			UM()->fields()->set_id = $_POST['set_id'];
-			UM()->fields()->set_mode = $_POST['set_mode'];
+			UM()->fields()->set_id = sanitize_key( $_POST['set_id'] );
+			UM()->fields()->set_mode = sanitize_key( $_POST['set_mode'] );
 
 			/**
 			 * UM hook
@@ -428,7 +428,7 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 
 				if ( ! is_array( $_FILES[ $id ]['name'] ) ) {
 
-					$user_id = $_POST['user_id'];
+					$user_id = sanitize_key( $_POST['user_id'] );
 
 					UM()->uploader()->replace_upload_dir = true;
 					$uploaded = UM()->uploader()->upload_file( $_FILES[ $id ], $user_id, $id );

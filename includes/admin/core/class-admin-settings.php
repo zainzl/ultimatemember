@@ -1509,9 +1509,9 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 		 */
 		function save_settings_handler() {
 
-			if ( isset( $_POST['um-settings-action'] ) && 'save' == $_POST['um-settings-action'] && ! empty( $_POST['um_options'] ) ) {
+			if ( isset( $_POST['um-settings-action'] ) && 'save' == sanitize_key( $_POST['um-settings-action'] ) && ! empty( $_POST['um_options'] ) ) {
 
-				$nonce = ! empty( $_POST['__umnonce'] ) ? $_POST['__umnonce'] : '';
+				$nonce = ! empty( $_POST['__umnonce'] ) ? sanitize_text_field( $_POST['__umnonce'] ) : '';
 
 				if ( ( ! wp_verify_nonce( $nonce, 'um-settings-nonce' ) || empty( $nonce ) ) || ! current_user_can('manage_options') ) {
 					// This nonce is not valid.
@@ -1682,7 +1682,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Settings' ) ) {
 
 					foreach ( $_POST['um_options'] as $option_slug => $post_id ) {
 						$slug = str_replace( 'core_', '', $option_slug );
-						update_post_meta( $post_id, '_um_core', $slug );
+						update_post_meta( sanitize_key( $post_id ), '_um_core', $slug );
 					}
 				} elseif ( ! empty( $_POST['um_options']['permalink_base'] ) ) {
 					if ( ! empty( $this->need_change_permalinks ) ) {
@@ -2597,7 +2597,7 @@ Use Only Cookies:         			<?php echo ini_get( 'session.use_only_cookies' ) ? 
 				header( "Content-type: text/plain" );
 				header( 'Content-Disposition: attachment; filename="ultimatemember-install-info.txt"' );
 
-				echo wp_strip_all_tags( $_POST['um-install-info'] );
+				echo wp_strip_all_tags( sanitize_text_field( $_POST['um-install-info'] ) );
 				exit;
 			}
 		}

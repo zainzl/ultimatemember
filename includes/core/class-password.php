@@ -245,7 +245,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 		 * @return bool
 		 */
 		function is_reset_request() {
-			if ( um_is_core_page( 'password-reset' ) && isset( $_POST['_um_password_reset'] ) == 1 ) {
+			if ( um_is_core_page( 'password-reset' ) && isset( sanitize_key( $_POST['_um_password_reset'] ) ) == 1 ) {
 				return true;
 			}
 
@@ -260,9 +260,9 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 		 * @return bool
 		 */
 		function is_change_request() {
-			if ( um_is_core_page( 'account' ) && isset( $_POST['_um_account'] ) == 1 && isset( $_POST['_um_account_tab'] ) && $_POST['_um_account_tab'] == 'password' ) {
+			if ( um_is_core_page( 'account' ) && isset( $_POST['_um_account'] ) == 1 && isset( $_POST['_um_account_tab'] ) && sanitize_key( $_POST['_um_account_tab'] ) == 'password' ) {
 				return true;
-			} elseif ( isset( $_POST['_um_password_change'] ) && $_POST['_um_password_change'] == 1 ) {
+			} elseif ( isset( $_POST['_um_password_change'] ) && sanitize_key( $_POST['_um_password_change'] ) == 1 ) {
 				return true;
 			}
 
@@ -443,7 +443,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 		 */
 		function um_reset_password_errors_hook( $args ) {
 
-			if ( $_POST[ UM()->honeypot ] != '' ) {
+			if ( isset( $_POST[ UM()->honeypot ] ) && sanitize_key( $_POST[ UM()->honeypot ] ) != '' ) {
 				wp_die( 'Hello, spam bot!', 'ultimate-member' );
 			}
 
@@ -525,7 +525,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 		 * @param $args
 		 */
 		function um_change_password_errors_hook( $args ) {
-			if ( isset(  $_POST[ UM()->honeypot ]  ) && $_POST[ UM()->honeypot ] != '' ){
+			if ( isset( $_POST[ UM()->honeypot ] ) && sanitize_key( $_POST[ UM()->honeypot ] ) != '' ){
 				wp_die('Hello, spam bot!','ultimate-member');
 			}
 
@@ -573,7 +573,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 		function um_change_password_process_hook( $args ) {
 			extract( $args );
 
-			if ( isset( $_POST['_um_password_change'] ) && $_POST['_um_password_change'] == 1 ) {
+			if ( isset( $_POST['_um_password_change'] ) && sanitize_key( $_POST['_um_password_change'] ) == 1 ) {
 
 				$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
 				$user = get_userdata( $args['user_id'] );
@@ -585,7 +585,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 						$user = false;
 					} else {
 						$user = check_password_reset_key( $rp_key, $rp_login );
-						if ( isset( $_POST['user_password'] ) && ! hash_equals( $rp_key, $_POST['rp_key'] ) ) {
+						if ( isset( $_POST['user_password'] ) && ! hash_equals( $rp_key, sanitize_text_field( $_POST['rp_key'] ) ) ) {
 							$user = false;
 						}
 					}

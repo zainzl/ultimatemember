@@ -94,13 +94,13 @@ if ( ! class_exists( 'um\core\Form' ) ) {
 			$arr_options['status'] = 'success';
 			$arr_options['post'] = $_POST;
 
-			UM()->fields()->set_id = intval( $_POST['form_id'] );
+			UM()->fields()->set_id = sanitize_key( $_POST['form_id'] );
 			UM()->fields()->set_mode  = 'profile';
 			$form_fields = UM()->fields()->get_fields();
 			$arr_options['fields'] = $form_fields;
 
 			if ( $arr_options['post']['members_directory'] == 'yes' ) {
-				$ajax_source_func = $_POST['child_callback'];
+				$ajax_source_func = sanitize_key( $_POST['child_callback'] );
 				if( function_exists( $ajax_source_func ) ){
 					$arr_options['items'] = call_user_func( $ajax_source_func, $arr_options['field']['parent_dropdown_relationship']  );
 					wp_send_json( $arr_options );
@@ -135,16 +135,17 @@ if ( ! class_exists( 'um\core\Form' ) ) {
 					);
 				}
 
-				if( isset( $_POST['child_callback'] ) && ! empty( $_POST['child_callback'] ) && isset( $form_fields[ $_POST['child_name'] ] )  ){
+				if( isset( $_POST['child_callback'] ) && ! empty( $_POST['child_callback'] ) && isset( $form_fields[ sanitize_key( $_POST['child_name'] ) ] )  ){
 
-					$ajax_source_func = $_POST['child_callback'];
+					$child_name = sanitize_key( $_POST['child_name'] );
+					$ajax_source_func = sanitize_key( $_POST['child_callback'] );
 
 					// If the requested callback function is added in the form or added in the field option, execute it with call_user_func.
-					if ( isset( $form_fields[ $_POST['child_name'] ]['custom_dropdown_options_source'] ) &&
-						! empty( $form_fields[ $_POST['child_name'] ]['custom_dropdown_options_source'] ) &&
-						$form_fields[ $_POST['child_name'] ]['custom_dropdown_options_source'] == $ajax_source_func ) {
+					if ( isset( $form_fields[ $child_name ]['custom_dropdown_options_source'] ) &&
+						! empty( $form_fields[ $child_name ]['custom_dropdown_options_source'] ) &&
+						$form_fields[ $child_name ]['custom_dropdown_options_source'] == $ajax_source_func ) {
 
-						$arr_options['field'] = $form_fields[ $_POST['child_name'] ];
+						$arr_options['field'] = $form_fields[ $child_name ];
 
 						if( function_exists( $ajax_source_func ) ){
 							$arr_options['items'] = call_user_func( $ajax_source_func, $arr_options['field']['parent_dropdown_relationship']  );
@@ -269,7 +270,7 @@ if ( ! class_exists( 'um\core\Form' ) ) {
 				 */
 				do_action( "um_before_submit_form_post", $_POST );
 
-				$this->form_id = $_POST['form_id'];
+				$this->form_id = sanitize_key( $_POST['form_id'] );
 				$this->form_status = get_post_status( $this->form_id );
 
 
@@ -339,7 +340,7 @@ if ( ! class_exists( 'um\core\Form' ) ) {
 						//$this->post_form['submitted']['role'] = $role;
 					}
 
-					if ( isset( $_POST[ UM()->honeypot ] ) && $_POST[ UM()->honeypot ] != '' ){
+					if ( isset( $_POST[ UM()->honeypot ] ) && sanitize_key( $_POST[ UM()->honeypot ] ) != '' ){
 						wp_die( 'Hello, spam bot!', 'ultimate-member' );
 					}
 

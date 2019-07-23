@@ -13,20 +13,21 @@ function um_submit_account_errors_hook( $args ) {
 		return;
 	}
 
-	if ( ! wp_verify_nonce( $_POST[ 'um_account_nonce_' . $_POST['_um_account_tab'] ], 'um_update_account_' . $_POST['_um_account_tab'] ) ) {
+	if ( ! wp_verify_nonce( $_POST[ 'um_account_nonce_' . sanitize_key( $_POST['_um_account_tab'] ) ], 'um_update_account_' . sanitize_key( $_POST['_um_account_tab'] ) ) ) {
 		UM()->form()->add_error('um_account_security', __( 'Are you hacking? Please try again!', 'ultimate-member' ) );
 	}
 
 	$user = get_user_by( 'login', um_user( 'user_login' ) );
 
 	if ( isset( $_POST['_um_account_tab'] ) ) {
-		switch ( $_POST['_um_account_tab'] ) {
+		$account_tab = sanitize_key( $_POST['_um_account_tab'] );
+		switch ( $account_tab ) {
 			case 'delete': {
 				// delete account
-				if ( strlen(trim( $_POST['single_user_password'] ) ) == 0 ) {
+				if ( strlen(trim( sanitize_text_field( $_POST['single_user_password'] ) ) ) == 0 ) {
 					UM()->form()->add_error( 'single_user_password', __( 'You must enter your password', 'ultimate-member' ) );
 				} else {
-					if ( ! wp_check_password( $_POST['single_user_password'], $user->data->user_pass, $user->data->ID ) ) {
+					if ( ! wp_check_password( sanitize_text_field( $_POST['single_user_password'] ), $user->data->user_pass, $user->data->ID ) ) {
 						UM()->form()->add_error( 'single_user_password', __( 'This is not your password', 'ultimate-member' ) );
 					}
 				}
@@ -38,32 +39,32 @@ function um_submit_account_errors_hook( $args ) {
 
 			case 'password': {
 				// change password
-				if ( ( isset( $_POST['current_user_password'] ) && $_POST['current_user_password'] != '' ) ||
-					( isset( $_POST['user_password'] ) && $_POST['user_password'] != '' ) ||
-					( isset( $_POST['confirm_user_password'] ) && $_POST['confirm_user_password'] != '') ) {
+				if ( ( isset( $_POST['current_user_password'] ) && sanitize_text_field( $_POST['current_user_password'] ) != '' ) ||
+					( isset( $_POST['user_password'] ) && sanitize_text_field( $_POST['user_password'] ) != '' ) ||
+					( isset( $_POST['confirm_user_password'] ) && sanitize_text_field( $_POST['confirm_user_password'] ) != '') ) {
 
-					if ( $_POST['current_user_password'] == '' || ! wp_check_password( $_POST['current_user_password'], $user->data->user_pass, $user->data->ID ) ) {
+					if ( sanitize_text_field( $_POST['current_user_password'] ) == '' || ! wp_check_password( sanitize_text_field( $_POST['current_user_password'] ), $user->data->user_pass, $user->data->ID ) ) {
 
 						UM()->form()->add_error('current_user_password', __('This is not your password','ultimate-member') );
 						UM()->account()->current_tab = 'password';
 					} else { // correct password
 
-						if ( $_POST['user_password'] != $_POST['confirm_user_password'] && $_POST['user_password'] ) {
+						if ( sanitize_text_field( $_POST['user_password'] ) != sanitize_text_field( $_POST['confirm_user_password'] ) && sanitize_text_field( $_POST['user_password'] ) ) {
 							UM()->form()->add_error('user_password', __('Your new password does not match','ultimate-member') );
 							UM()->account()->current_tab = 'password';
 						}
 
 						if ( UM()->options()->get( 'account_require_strongpass' ) ) {
 
-							if ( strlen( utf8_decode( $_POST['user_password'] ) ) < 8 ) {
+							if ( strlen( utf8_decode( sanitize_text_field( $_POST['user_password'] ) ) ) < 8 ) {
 								UM()->form()->add_error('user_password', __('Your password must contain at least 8 characters','ultimate-member') );
 							}
 
-							if ( strlen( utf8_decode( $_POST['user_password'] ) ) > 30 ) {
+							if ( strlen( utf8_decode( sanitize_text_field( $_POST['user_password'] ) ) ) > 30 ) {
 								UM()->form()->add_error('user_password', __('Your password must contain less than 30 characters','ultimate-member') );
 							}
 
-							if ( ! UM()->validation()->strong_pass( $_POST['user_password'] ) ) {
+							if ( ! UM()->validation()->strong_pass( sanitize_text_field( $_POST['user_password'] ) ) ) {
 								UM()->form()->add_error('user_password', __('Your password must contain at least one lowercase letter, one capital letter and one number','ultimate-member') );
 							}
 
@@ -81,40 +82,40 @@ function um_submit_account_errors_hook( $args ) {
 
 				$account_name_require = UM()->options()->get( 'account_name_require' );
 
-				if ( ! empty( $_POST['user_login'] ) && ! validate_username( $_POST['user_login'] ) ) {
+				if ( ! empty( $_POST['user_login'] ) && ! validate_username( sanitize_text_field( $_POST['user_login'] ) ) ) {
 					UM()->form()->add_error('user_login', __( 'Your username is invalid', 'ultimate-member' ) );
 					return;
 				}
 
-				if ( isset( $_POST['first_name'] ) && ( strlen( trim( $_POST['first_name'] ) ) == 0 && $account_name_require ) ) {
+				if ( isset( $_POST['first_name'] ) && ( strlen( sanitize_user( $_POST['first_name'] ) ) == 0 && $account_name_require ) ) {
 					UM()->form()->add_error( 'first_name', __( 'You must provide your first name', 'ultimate-member' ) );
 				}
 
-				if ( isset( $_POST['last_name'] ) && ( strlen( trim( $_POST['last_name'] ) ) == 0 && $account_name_require ) ) {
+				if ( isset( $_POST['last_name'] ) && ( strlen( sanitize_user( $_POST['last_name'] ) ) == 0 && $account_name_require ) ) {
 					UM()->form()->add_error( 'last_name', __( 'You must provide your last name', 'ultimate-member' ) );
 				}
 
 				if ( isset( $_POST['user_email'] ) ) {
 
-					if ( strlen( trim( $_POST['user_email'] ) ) == 0 ) {
+					if ( strlen( sanitize_email( $_POST['user_email'] ) ) == 0 ) {
 						UM()->form()->add_error( 'user_email', __( 'You must provide your e-mail', 'ultimate-member' ) );
 					}
 
-					if ( ! is_email( $_POST['user_email'] ) ) {
+					if ( ! is_email( sanitize_email( $_POST['user_email'] ) ) ) {
 						UM()->form()->add_error( 'user_email', __( 'Please provide a valid e-mail', 'ultimate-member' ) );
 					}
 
-					if ( email_exists( $_POST['user_email'] ) && email_exists( $_POST['user_email'] ) != get_current_user_id() ) {
+					if ( email_exists( sanitize_email( $_POST['user_email'] ) ) && email_exists( sanitize_email( $_POST['user_email'] ) ) != get_current_user_id() ) {
 						UM()->form()->add_error( 'user_email', __( 'Email already linked to another account', 'ultimate-member' ) );
 					}
 				}
 
 				// check account password
 				if ( UM()->options()->get( 'account_general_password' ) ) {
-					if ( strlen( trim( $_POST['single_user_password'] ) ) == 0 ) {
+					if ( strlen( sanitize_text_field( $_POST['single_user_password'] ) ) == 0 ) {
 						UM()->form()->add_error('single_user_password', __( 'You must enter your password', 'ultimate-member' ) );
 					} else {
-						if ( ! wp_check_password( $_POST['single_user_password'], $user->data->user_pass, $user->data->ID ) ) {
+						if ( ! wp_check_password( sanitize_text_field( $_POST['single_user_password'] ), $user->data->user_pass, $user->data->ID ) ) {
 							UM()->form()->add_error('single_user_password', __( 'This is not your password', 'ultimate-member' ) );
 						}
 					}
@@ -141,11 +142,11 @@ function um_submit_account_errors_hook( $args ) {
 				 * }
 				 * ?>
 				 */
-				do_action( 'um_submit_account_' . $_POST['_um_account_tab'] . '_tab_errors_hook' );
+				do_action( 'um_submit_account_' . sanitize_key( $_POST['_um_account_tab'] ) . '_tab_errors_hook' );
                 break;
 		}
 
-		UM()->account()->current_tab = $_POST['_um_account_tab'];
+		UM()->account()->current_tab = sanitize_key( $_POST['_um_account_tab'] );
 	}
 
 }
@@ -160,12 +161,12 @@ add_action( 'um_submit_account_errors_hook', 'um_submit_account_errors_hook' );
 function um_submit_account_details( $args ) {
 	$tab = ( get_query_var('um_tab') ) ? get_query_var('um_tab') : 'general';
 
-	$current_tab = isset( $_POST['_um_account_tab'] ) ? $_POST['_um_account_tab']: '';
+	$current_tab = isset( $_POST['_um_account_tab'] ) ? sanitize_key( $_POST['_um_account_tab'] ) : '';
 
 	//change password account's tab
-	if ( 'password' == $current_tab && $_POST['user_password'] && $_POST['confirm_user_password'] ) {
+	if ( 'password' == $current_tab && sanitize_text_field( $_POST['user_password'] ) && sanitize_text_field( $_POST['confirm_user_password'] ) ) {
 
-		$changes['user_pass'] = $_POST['user_password'];
+		$changes['user_pass'] = sanitize_text_field( $_POST['user_password'] );
 
 		$args['user_id'] = um_user('ID');
 
@@ -186,7 +187,7 @@ function um_submit_account_details( $args ) {
 	// delete account
 	$user = get_user_by( 'login', um_user( 'user_login' ) );
 
-	if ( 'delete' == $current_tab && isset( $_POST['single_user_password'] ) && wp_check_password( $_POST['single_user_password'], $user->data->user_pass, $user->data->ID ) ) {
+	if ( 'delete' == $current_tab && isset( $_POST['single_user_password'] ) && wp_check_password( sanitize_text_field( $_POST['single_user_password'] ), $user->data->user_pass, $user->data->ID ) ) {
 		if ( current_user_can( 'delete_users' ) || um_user( 'can_delete_profile' ) ) {
 			UM()->user()->delete();
 
