@@ -245,7 +245,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 		 * @return bool
 		 */
 		function is_reset_request() {
-			if ( um_is_core_page( 'password-reset' ) && isset( sanitize_key( $_POST['_um_password_reset'] ) ) == 1 ) {
+			if ( um_is_core_page( 'password-reset' ) && isset( $_POST['_um_password_reset'] ) == 1 ) {
 				return true;
 			}
 
