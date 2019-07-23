@@ -680,7 +680,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Metabox' ) ) {
 		function um_category_access_fields_save( $termID ) {
 
 			// validate nonce
-			if ( ! isset( $_REQUEST['um_admin_save_taxonomy_restrict_content_nonce'] ) || ! wp_verify_nonce( $_REQUEST['um_admin_save_taxonomy_restrict_content_nonce'], basename( __FILE__ ) ) )
+			if ( ! isset( $_REQUEST['um_admin_save_taxonomy_restrict_content_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_REQUEST['um_admin_save_taxonomy_restrict_content_nonce'] ), basename( __FILE__ ) ) )
 				return $termID;
 
 			// validate user

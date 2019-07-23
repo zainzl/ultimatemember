@@ -186,7 +186,7 @@ if ( ! class_exists( 'um\admin\Admin' ) ) {
 			if ( ! is_admin() || ! current_user_can('manage_options') ) die();
 			if ( ! isset( $_REQUEST['post_id'] ) || ! is_numeric( $_REQUEST['post_id'] ) ) die();
 
-			$post_id = $_REQUEST['post_id'];
+			$post_id = sanitize_key( $_REQUEST['post_id'] );
 
 			$n = array(
 				'post_type' 	  	=> 'um_form',
@@ -243,11 +243,11 @@ if ( ! class_exists( 'um\admin\Admin' ) ) {
 		function user_action( $action ) {
 			if ( !is_admin() || !current_user_can( 'edit_users' ) ) die();
 			if ( !isset( $_REQUEST['sub'] ) ) die();
-			if ( !isset($_REQUEST['user_id']) ) die();
+			if ( !isset( $_REQUEST['user_id'] ) ) die();
 
-			um_fetch_user( $_REQUEST['user_id'] );
+			um_fetch_user( sanitize_key( $_REQUEST['user_id'] ) );
 
-			$subaction = $_REQUEST['sub'];
+			$subaction = sanitize_key( $_REQUEST['sub'] );
 
 			/**
 			 * UM hook
@@ -317,6 +317,7 @@ if ( ! class_exists( 'um\admin\Admin' ) ) {
 		 */
 		function admin_init() {
 			if ( is_admin() && current_user_can( 'manage_options' ) && ! empty( $_REQUEST['um_adm_action'] ) ) {
+				$adm_action = sanitize_key( $_REQUEST['um_adm_action'] );
 				/**
 				 * UM hook
 				 *
@@ -336,7 +337,7 @@ if ( ! class_exists( 'um\admin\Admin' ) ) {
 				 * }
 				 * ?>
 				 */
-				do_action( "um_admin_do_action__", $_REQUEST['um_adm_action'] );
+				do_action( "um_admin_do_action__", $adm_action );
 				/**
 				 * UM hook
 				 *
@@ -356,7 +357,7 @@ if ( ! class_exists( 'um\admin\Admin' ) ) {
 				 * }
 				 * ?>
 				 */
-				do_action( "um_admin_do_action__{$_REQUEST['um_adm_action']}", $_REQUEST['um_adm_action'] );
+				do_action( "um_admin_do_action__{$adm_action}", $adm_action );
 			}
 		}
 
