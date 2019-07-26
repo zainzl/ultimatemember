@@ -1252,7 +1252,7 @@ if ( ! class_exists( 'um\core\Uploader' ) ) {
 					$str = basename( $file );
 
 					if ( ! strstr( $str, 'profile_photo' ) && ! strstr( $str, 'cover_photo' ) &&
-					     ! strstr( $str, 'stream_photo' ) && ! preg_grep( '/' . $str . '/', $_array ) ) {
+					     ! strstr( $str, 'stream_photo' ) && ! preg_grep( '/' . $str . '/', $_array ) && is_file( $file ) ) {
 						$error[] = $str;
 						unlink( $file );
 					}

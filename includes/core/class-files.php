@@ -310,9 +310,9 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			$ret = array();
 
 			$id = sanitize_key( $_POST['key'] );
-			$timestamp = sanitize_text_field( $_POST['timestamp'] );
 			$nonce = sanitize_text_field( $_POST['_wpnonce'] );
-			$user_id = sanitize_key( $_POST['user_id'] );
+			$timestamp = sanitize_text_field( $_POST['timestamp'] );
+			$user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : get_current_user_id();
 
 			UM()->fields()->set_id = sanitize_key( $_POST['set_id'] );
 			UM()->fields()->set_mode = sanitize_key( $_POST['set_mode'] );
@@ -384,9 +384,10 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 				die( json_encode( $ret ) );
 			}*/
 
-			$nonce = sanitize_text_field( $_POST['_wpnonce'] );
 			$id = sanitize_key( $_POST['key'] );
+			$nonce = sanitize_text_field( $_POST['_wpnonce'] );
 			$timestamp = sanitize_text_field( $_POST['timestamp'] );
+			$user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : get_current_user_id();
 
 			UM()->fields()->set_id = sanitize_key( $_POST['set_id'] );
 			UM()->fields()->set_mode = sanitize_key( $_POST['set_mode'] );
@@ -427,8 +428,6 @@ if ( ! class_exists( 'um\core\Files' ) ) {
 			if( isset( $_FILES[ $id ]['name'] ) ) {
 
 				if ( ! is_array( $_FILES[ $id ]['name'] ) ) {
-
-					$user_id = sanitize_key( $_POST['user_id'] );
 
 					UM()->uploader()->replace_upload_dir = true;
 					$uploaded = UM()->uploader()->upload_file( $_FILES[ $id ], $user_id, $id );
