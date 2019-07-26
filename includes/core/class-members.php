@@ -388,7 +388,7 @@ if ( ! class_exists( 'um\core\Members' ) ) {
 			if(  isset( $args['page'] ) ){
 				$members_page = $args['page'];
 			}else{
-				$members_page = isset( $_REQUEST['members_page'] ) ? $_REQUEST['members_page'] : 1;
+				$members_page = isset( $_REQUEST['members_page'] ) ? sanitize_key( $_REQUEST['members_page'] ) : 1;
 			}
 
 			$query_args['paged'] = $members_page;

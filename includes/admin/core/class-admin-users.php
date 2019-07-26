@@ -125,7 +125,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Users' ) ) {
 			</div>
 
 			<?php if ( ! empty( $_REQUEST['status'] ) ) { ?>
-				<input type="hidden" name="status" id="um_status" value="<?php echo esc_attr( $_REQUEST['status'] );?>"/>
+				<input type="hidden" name="status" id="um_status" value="<?php echo esc_attr( sanitize_key( $_REQUEST['status'] ) );?>"/>
 			<?php }
 		}
 
@@ -319,7 +319,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Users' ) ) {
 			UM()->query()->count_users_by_status( 'unassigned' );
 
 			foreach ( $status as $k => $v ) {
-				if ( isset( $_REQUEST['status'] ) && $_REQUEST['status'] == $k ) {
+				if ( isset( $_REQUEST['status'] ) && sanitize_key( $_REQUEST['status'] ) == $k ) {
 					$current = 'class="current"';
 				} else {
 					$current = '';
@@ -457,10 +457,10 @@ if ( ! class_exists( 'um\admin\core\Admin_Users' ) ) {
 		function set_redirect_uri( $uri ) {
 
 			if ( ! empty( $_REQUEST['s'] ) )
-				$uri = add_query_arg( 's', $_REQUEST['s'], $uri );
+				$uri = add_query_arg( 's', sanitize_key( $_REQUEST['s'] ), $uri );
 
 			if ( ! empty( $_REQUEST['status'] ) )
-				$uri = add_query_arg( 'status', $_REQUEST['status'], $uri );
+				$uri = add_query_arg( 'status', sanitize_key( $_REQUEST['status'] ), $uri );
 
 			return $uri;
 

@@ -366,7 +366,7 @@ if ( ! class_exists( 'um\admin\core\Admin_Notices' ) ) {
 				return;
 			}
 
-			$update = $_REQUEST['update'];
+			$update = sanitize_key( $_REQUEST['update'] );
 			switch( $update ) {
 
 				case 'confirm_delete':

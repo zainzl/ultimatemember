@@ -79,7 +79,7 @@ if ( ! empty( $_POST['role'] ) ) {
 
 	if ( empty( $error ) ) {
 
-		$data = sanitize_key( $_POST['role'] );
+		$data = $_POST['role'];
 
 		if ( 'add' == $tab ) {
 

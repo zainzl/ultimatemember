@@ -278,7 +278,7 @@ if ( ! class_exists( 'um\core\Password' ) ) {
 				UM()->fields()->set_mode = 'password';
 			}
 
-			if ( um_is_core_page( 'password-reset' ) && isset( $_REQUEST['act'] ) && $_REQUEST['act'] == 'reset_password' ) {
+			if ( um_is_core_page( 'password-reset' ) && isset( $_REQUEST['act'] ) && sanitize_key( $_REQUEST['act'] ) == 'reset_password' ) {
 				wp_fix_server_vars();
 
 				$rp_cookie = 'wp-resetpass-' . COOKIEHASH;

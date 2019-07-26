@@ -18,11 +18,11 @@ if ( isset( $_GET['action'] ) ) {
 		case 'delete': {
 			$role_keys = array();
 			if ( isset( $_REQUEST['id'] ) ) {
-				check_admin_referer( 'um_role_delete' .  $_REQUEST['id'] . get_current_user_id() );
-				$role_keys = (array)$_REQUEST['id'];
+				check_admin_referer( 'um_role_delete' .  sanitize_key( $_REQUEST['id'] ) . get_current_user_id() );
+				$role_keys = (array) sanitize_key( $_REQUEST['id'] );
 			} elseif( isset( $_REQUEST['item'] ) )  {
 				check_admin_referer( 'bulk-' . sanitize_key( __( 'Roles', 'ultimate-member' ) ) );
-				$role_keys = $_REQUEST['item'];
+				$role_keys = (array) $_REQUEST['item'];
 			}
 
 			if ( ! count( $role_keys ) )
@@ -83,11 +83,11 @@ if ( isset( $_GET['action'] ) ) {
 		case 'reset': {
 			$role_keys = array();
 			if ( isset( $_REQUEST['id'] ) ) {
-				check_admin_referer( 'um_role_reset' .  $_REQUEST['id'] . get_current_user_id() );
-				$role_keys = (array)$_REQUEST['id'];
+				check_admin_referer( 'um_role_reset' .  sanitize_key( $_REQUEST['id'] ) . get_current_user_id() );
+				$role_keys = (array) sanitize_key( $_REQUEST['id'] );
 			} elseif( isset( $_REQUEST['item'] ) )  {
 				check_admin_referer( 'bulk-' . sanitize_key( __( 'Roles', 'ultimate-member' ) ) );
-				$role_keys = $_REQUEST['item'];
+				$role_keys = (array) $_REQUEST['item'];
 			}
 
 			if ( ! count( $role_keys ) )

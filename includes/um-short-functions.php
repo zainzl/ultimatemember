@@ -1411,7 +1411,7 @@ function um_edit_my_profile_cancel_uri( $url = '' ) {
  */
 function um_is_on_edit_profile() {
 	if (isset( $_REQUEST['profiletab'] ) && isset( $_REQUEST['um_action'] )) {
-		if ($_REQUEST['profiletab'] == 'main' && $_REQUEST['um_action'] == 'edit') {
+		if (sanitize_key( $_REQUEST['profiletab'] ) == 'main' && sanitize_key( $_REQUEST['um_action'] ) == 'edit') {
 			return true;
 		}
 	}

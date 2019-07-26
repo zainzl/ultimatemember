@@ -159,7 +159,7 @@ if ( ! class_exists( 'um\core\Shortcodes' ) ) {
 
 				if ( ! empty( $_REQUEST['um_role'] ) ) {
 					$args['template'] = 'message';
-					$roleID = esc_attr( $_REQUEST['um_role'] );
+					$roleID = sanitize_key( $_REQUEST['um_role'] );
 					$role = UM()->roles()->role_data( $roleID );
 
 					if ( ! empty( $role ) && ! empty( $role["status"] ) ) {

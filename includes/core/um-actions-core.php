@@ -18,27 +18,27 @@ function um_action_request_process() {
 		return;
 	}
 
-	if ( isset( $_REQUEST['uid'] ) && ! UM()->user()->user_exists_by_id( $_REQUEST['uid'] ) ) {
+	if ( isset( $_REQUEST['uid'] ) && ! UM()->user()->user_exists_by_id( sanitize_key( $_REQUEST['uid'] ) ) ) {
 		return;
 	}
 
 	if ( isset( $_REQUEST['uid'] ) ) {
-		if ( is_super_admin( $_REQUEST['uid'] ) ) {
+		if ( is_super_admin( sanitize_key( $_REQUEST['uid'] ) ) ) {
 			wp_die( __( 'Super administrators can not be modified.', 'ultimate-member' ) );
 		}
 	}
 
-//	if ( isset( $_REQUEST['um_action'] ) && $_REQUEST['um_action'] != "edit" && ! current_user_can( 'edit_users' ) ) {
+//	if ( isset( $_REQUEST['um_action'] ) && sanitize_key( $_REQUEST['um_action'] ) != "edit" && ! current_user_can( 'edit_users' ) ) {
 //		wp_die( __( 'You do not have enough permissions to do that.','ultimate-member') );
 //	}
 
 	if ( isset( $_REQUEST['uid'] ) ) {
-		$uid = $_REQUEST['uid'];
+		$uid = sanitize_key( $_REQUEST['uid'] );
 	}
 
-	switch ( $_REQUEST['um_action'] ) {
+	switch ( sanitize_key( $_REQUEST['um_action'] ) ) {
 		default:
-			$uid = isset( $_REQUEST['uid'] ) ? $_REQUEST['uid'] : 0;
+			$uid = isset( $_REQUEST['uid'] ) ? sanitize_key( $_REQUEST['uid'] ) : 0;
 			/**
 			 * UM hook
 			 *
@@ -59,7 +59,7 @@ function um_action_request_process() {
 			 * }
 			 * ?>
 			 */
-			do_action( 'um_action_user_request_hook', $_REQUEST['um_action'], $uid );
+			do_action( 'um_action_user_request_hook', sanitize_key( $_REQUEST['um_action'] ), $uid );
 			break;
 
 		case 'edit':
@@ -80,7 +80,7 @@ function um_action_request_process() {
 			if ( ! current_user_can( 'delete_users' ) ) {
 				return;
 			}
-			UM()->user()->auto_login( $_REQUEST['uid'] );
+			UM()->user()->auto_login( sanitize_key( $_REQUEST['uid'] ) );
 			exit( wp_redirect( UM()->permalinks()->get_current_url( true ) ) );
 			break;
 

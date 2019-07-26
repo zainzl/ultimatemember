@@ -499,7 +499,7 @@ function um_modify_sortby_randomly( $query ) {
 		}
 
 		// Reset seed on load of initial
-		if( ! isset( $_REQUEST['members_page'] ) || $_REQUEST['members_page'] == 0 ||  $_REQUEST['members_page'] == 1 ) {
+		if( ! isset( $_REQUEST['members_page'] ) || sanitize_key( $_REQUEST['members_page'] ) == 0 ||  sanitize_key( $_REQUEST['members_page'] ) == 1 ) {
 			if( isset( $_SESSION['seed'] ) ) {
 				unset( $_SESSION['seed'] );
 			}

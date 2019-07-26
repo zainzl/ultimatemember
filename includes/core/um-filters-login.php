@@ -35,7 +35,7 @@ add_filter( 'um_whitelisted_wpadmin_access', 'um_whitelisted_wpadmin_access' );
 function um_custom_wp_err_messages( $message ) {
 
 	if ( isset( $_REQUEST['err'] ) && !empty( $_REQUEST['err'] ) ) {
-		switch( $_REQUEST['err'] ) {
+		switch( sanitize_key( $_REQUEST['err'] ) ) {
 			case 'blocked_email':
 				$err = __('This email address has been blocked.','ultimate-member');
 				break;

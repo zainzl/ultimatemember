@@ -70,11 +70,11 @@ if ( ! class_exists( 'um\core\Logout' ) ) {
 
 					add_filter( 'wp_safe_redirect_fallback', array( &$this, 'safe_redirect_default' ), 10, 2 );
 
-					if ( isset( $_REQUEST['redirect_to'] ) && $_REQUEST['redirect_to'] !== '' ) {
+					if ( isset( $_REQUEST['redirect_to'] ) && sanitize_text_field( $_REQUEST['redirect_to'] ) !== '' ) {
 						wp_destroy_current_session();
 						wp_logout();
 						session_unset();
-						exit( wp_safe_redirect( $_REQUEST['redirect_to'] ) );
+						exit( wp_safe_redirect( sanitize_text_field( $_REQUEST['redirect_to'] ) ) );
 					} else if ( um_user('after_logout') == 'redirect_home' ) {
 						wp_destroy_current_session();
 						wp_logout();
